@@ -7,7 +7,7 @@ test:
     - script:
         name: go get
         code: |
-          go get
+          go get -t
 
     # Test the project
     - script:
