@@ -4,10 +4,12 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/mwitkow/go-grpc-middleware"
+	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"google.golang.org/grpc"
 )
 
@@ -22,6 +24,8 @@ type options struct {
 	unaryInts      []grpc.UnaryServerInterceptor
 	streamInts     []grpc.StreamServerInterceptor
 	implementation registerImplementation
+	tracing        bool
+	tracer         *opentracing.Tracer
 }
 
 type Option func(*options)
@@ -38,6 +42,8 @@ func DefaultOptions() options {
 		prometheus:     true,
 		prometheusPort: ":8080",
 		prometheusAddr: "/metrics",
+		tracing:        true,
+		tracer:         nil,
 		implementation: func(s *grpc.Server) {},
 	}
 }
@@ -60,6 +66,18 @@ func AddStreamInterceptor(sint grpc.StreamServerInterceptor) Option {
 	}
 }
 
+func Tracer(t opentracing.Tracer) Option {
+	return func(o *options) {
+		o.tracer = &t
+	}
+}
+
+func TracingEnabled(e bool) Option {
+	return func(o *options) {
+		o.tracing = e
+	}
+}
+
 func Implementation(impl registerImplementation) Option {
 	return func(o *options) {
 		o.implementation = impl
@@ -75,6 +93,17 @@ func NewServer(opt ...Option) *Server {
 	if opts.prometheus {
 		AddUnaryInterceptor(grpc_prometheus.UnaryServerInterceptor)(&opts)
 		AddStreamInterceptor(grpc_prometheus.StreamServerInterceptor)(&opts)
+	}
+
+	if opts.tracing {
+		if opts.tracer == nil {
+			t := tracerFromEnv(opts)
+			opts.tracer = &t
+		}
+
+		AddUnaryInterceptor(
+			otgrpc.OpenTracingServerInterceptor(*opts.tracer),
+		)(&opts)
 	}
 
 	s := grpc.NewServer(
@@ -102,27 +131,10 @@ func (s *Server) ListenAndServe() error {
 		return err
 	}
 
-	log.Infof("Serving %s: gRPC %s", s.opts.name, s.opts.port)
+	logrus.Infof("Serving %s: gRPC %s", s.opts.name, s.opts.port)
 	if s.opts.prometheus {
-		log.Infof("Prometheus metrics on %s %s", s.opts.prometheusAddr, s.opts.prometheusPort)
+		logrus.Infof("Prometeus metrics on %s %s", s.opts.prometheusAddr, s.opts.prometheusPort)
 	}
 
 	return s.Serve(lis)
 }
-
-// func KafkaTracer(addr string) (t opentracing.Tracer, err error) {
-// 	collector, err := zipkin.NewKafkaCollector([]string{addr})
-// 	if err != nil {
-// 		return t, err
-// 	}
-
-// 	t, err = zipkin.NewTracer(
-// 		zipkin.NewRecorder(collector, false, "account_service", "Account Service"),
-// 		zipkin.ClientServerSameSpan(true), // for Zipkin V1 RPC span style
-// 	)
-// 	if err != nil {
-// 		return t, err
-// 	}
-
-// 	return t, err
-// }
