@@ -97,13 +97,14 @@ func NewServer(opt ...Option) *Server {
 
 	if opts.tracing {
 		if opts.tracer == nil {
-			t := tracerFromEnv(opts)
-			opts.tracer = &t
+			opts.tracer = tracerFromEnv(opts)
 		}
 
-		AddUnaryInterceptor(
-			otgrpc.OpenTracingServerInterceptor(*opts.tracer),
-		)(&opts)
+		if opts.tracer != nil {
+			AddUnaryInterceptor(
+				otgrpc.OpenTracingServerInterceptor(*opts.tracer),
+			)(&opts)
+		}
 	}
 
 	s := grpc.NewServer(

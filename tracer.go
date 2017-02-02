@@ -11,7 +11,7 @@ import (
 	zipkin "github.com/openzipkin/zipkin-go-opentracing"
 )
 
-func tracerFromEnv(opts options) opentracing.Tracer {
+func tracerFromEnv(opts options) *opentracing.Tracer {
 	var c zipkin.Collector
 	var err error
 
@@ -43,12 +43,16 @@ func tracerFromEnv(opts options) opentracing.Tracer {
 		logrus.Fatal(err)
 	}
 
+	if c == nil {
+		return nil
+	}
+
 	t, err := zipkinTracer(opts, c)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	return t
+	return &t
 }
 
 func zipkinTracer(opts options, collector zipkin.Collector) (t opentracing.Tracer, err error) {

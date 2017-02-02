@@ -1,0 +1,25 @@
+package main
+
+import (
+	"google.golang.org/grpc"
+
+	log "github.com/Sirupsen/logrus"
+  "{{ .RelDir }}/server"
+  "{{ .RelDir }}/{{ .SnakeCaseName }}"
+	"github.com/lileio/lile"
+)
+
+func main() {
+  s := &server.Server{}
+
+	impl := func(g *grpc.Server) {
+		{{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
+	}
+
+	err := lile.NewServer(
+		lile.Name("{{ .Name }}"),
+		lile.Implementation(impl),
+	).ListenAndServe()
+
+	log.Fatal(err)
+}

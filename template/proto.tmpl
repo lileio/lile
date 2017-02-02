@@ -1,0 +1,14 @@
+syntax = "proto3";
+package {{ .SnakeCaseName }};
+
+message Request {
+  string id = 1;
+}
+
+message Response {
+  string id = 1;
+}
+
+service {{ .CamelCaseName }} {
+  rpc Read (Request) returns (Response) {}
+}

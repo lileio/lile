@@ -1,0 +1,42 @@
+box: golang:1.8
+services:
+   - id: postgres
+     env:
+       POSTGRES_DB: account_service_test  # optional
+build:
+  steps:
+    - setup-go-workspace
+
+    # Gets the dependencies
+    - script:
+        name: go get
+        code: |
+          go get -t ./...
+
+    # Test the project
+    - script:
+        name: go test
+        code: |
+          go test ./... -v -connect "host=${POSTGRES_PORT_5432_TCP_ADDR} user=postgres dbname=account_service_test sslmode=disable"
+
+    # Build the project
+    - script:
+        name: go build
+        code: |
+          CGO_ENABLED=0 go build -a -ldflags '-s' -installsuffix cgo -o account_service .
+
+    # Copy binary to a location that gets passed along to the deploy pipeline
+    - script:
+        name: copy binary
+        code: cp account_service "$WERCKER_OUTPUT_DIR"
+deploy:
+  box: golang
+  steps:
+    - internal/docker-scratch-push:
+        username: $DOCKER_USERNAME
+        password: $DOCKER_PASSWORD
+        tag: latest
+        repository: alexrbarlow/account_service
+        registry: https://registry.hub.docker.com
+        cmd: ./account_service
+        ports: "8000"

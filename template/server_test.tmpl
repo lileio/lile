@@ -1,0 +1,22 @@
+package server
+
+import (
+	"context"
+	"testing"
+
+	"{{ .RelDir }}/{{ .SnakeCaseName }}"
+	"github.com/stretchr/testify/assert"
+)
+
+var s = Server{}
+
+func TestRead(t *testing.T) {
+	ctx := context.Background()
+	req := &{{ .SnakeCaseName }}.Request{
+		Id: "somethingidlike",
+	}
+	res, err := s.Read(ctx, req)
+
+	assert.Nil(t, err)
+	assert.NotEmpty(t, res.Id)
+}
