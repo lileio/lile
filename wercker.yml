@@ -18,12 +18,9 @@ test:
         code: |
           go test ./... -v
 
-    # # Test the project
-    # - script:
-    #     name: test generator
-    #     code: |
-    #       cd lile
-    #       go run main.go new lileio/cart
-    #       cd ../../cart
-    #       make proto
-    #       make test
+    # Test the gen
+    - script:
+        name: test generator
+        code: |
+          cd lile
+          go run main.go new lileio/cart
