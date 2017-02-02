@@ -35,7 +35,7 @@ type Server struct {
 	*grpc.Server
 }
 
-func DefaultOptions() options {
+func defaultOptions() options {
 	return options{
 		name:           "lile_service",
 		port:           ":8000",
@@ -85,7 +85,7 @@ func Implementation(impl registerImplementation) Option {
 }
 
 func NewServer(opt ...Option) *Server {
-	opts := DefaultOptions()
+	opts := defaultOptions()
 	for _, o := range opt {
 		o(&opts)
 	}
