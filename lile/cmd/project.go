@@ -28,6 +28,7 @@ func NewProject(path string) Project {
 	f.addFile("Makefile", "Makefile.tmpl")
 	f.addFile("readme.md", "readme.tmpl")
 	f.addFile("main.go", "main.tmpl")
+	f.addFile("wercker.yml", "wercker.tmpl")
 
 	return Project{
 		Name:       name,

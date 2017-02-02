@@ -3,14 +3,27 @@ test:
   steps:
     - setup-go-workspace
 
+    # - install-packages:
+    #     packages: golang-goprotobuf-dev
+
     # Gets the dependencies
     - script:
         name: go get
         code: |
-          go get -t
+          go get -t ./...
 
     # Test the project
     - script:
         name: go test
         code: |
           go test ./... -v
+
+    # # Test the project
+    # - script:
+    #     name: test generator
+    #     code: |
+    #       cd lile
+    #       go run main.go new lileio/cart
+    #       cd ../../cart
+    #       make proto
+    #       make test
