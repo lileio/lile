@@ -7,10 +7,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RootCmd is the root command line
 var RootCmd = &cobra.Command{
 	Use: "lile",
 }
 
+// Execute the commands
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)

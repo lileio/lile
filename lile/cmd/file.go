@@ -41,7 +41,7 @@ func (f *folder) addFile(name, tmpl string) {
 	})
 }
 
-func (f *folder) render(templatePath string, p Project) error {
+func (f *folder) render(templatePath string, p project) error {
 	for _, v := range f.files {
 		t, err := template.ParseFiles(filepath.Join(templatePath, v.Template))
 		if err != nil {

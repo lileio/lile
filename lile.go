@@ -1,3 +1,5 @@
+// Package lile provides helper methods to quickly run gRPC based servers
+// that have default metrics and tracing support
 package lile
 
 import (
@@ -28,8 +30,10 @@ type options struct {
 	tracer         *opentracing.Tracer
 }
 
+// An Option sets options
 type Option func(*options)
 
+// Server is a grpc compatible server with extra options
 type Server struct {
 	opts options
 	*grpc.Server
@@ -48,42 +52,49 @@ func defaultOptions() options {
 	}
 }
 
+// Name sets the name of the service
 func Name(n string) Option {
 	return func(o *options) {
 		o.name = n
 	}
 }
 
+// AddUnaryInterceptor adds a unary interceptor to the gRPC server
 func AddUnaryInterceptor(unint grpc.UnaryServerInterceptor) Option {
 	return func(o *options) {
 		o.unaryInts = append(o.unaryInts, unint)
 	}
 }
 
+// AddStreamInterceptor adds a stream interceptor to the gRPC server
 func AddStreamInterceptor(sint grpc.StreamServerInterceptor) Option {
 	return func(o *options) {
 		o.streamInts = append(o.streamInts, sint)
 	}
 }
 
+// Tracer adds an opentracing compatible tracer to the gRPC server
 func Tracer(t opentracing.Tracer) Option {
 	return func(o *options) {
 		o.tracer = &t
 	}
 }
 
+// TracingEnabled sets whether the intercept gRPC calls for tracing
 func TracingEnabled(e bool) Option {
 	return func(o *options) {
 		o.tracing = e
 	}
 }
 
+// Implementation registers the server handler for gRPC calls
 func Implementation(impl registerImplementation) Option {
 	return func(o *options) {
 		o.implementation = impl
 	}
 }
 
+// NewServer creates a lile server (gRPC server compatible) with N options
 func NewServer(opt ...Option) *Server {
 	opts := defaultOptions()
 	for _, o := range opt {
@@ -126,6 +137,8 @@ func NewServer(opt ...Option) *Server {
 	return &Server{opts, s}
 }
 
+// ListenAndServe creates a tcp socket and starts listening for connections.
+// it is NOT tls encrypted
 func (s *Server) ListenAndServe() error {
 	lis, err := net.Listen("tcp", s.opts.port)
 	if err != nil {

@@ -9,14 +9,14 @@ import (
 	"github.com/serenize/snaker"
 )
 
-type Project struct {
+type project struct {
 	Name       string
 	ProjectDir string
 	RelDir     string
 	Folder     folder
 }
 
-func NewProject(path string) Project {
+func newProject(path string) project {
 	name := lastFromSplit(path, string(os.PathSeparator))
 	relDir := projectBase(path)
 
@@ -30,7 +30,7 @@ func NewProject(path string) Project {
 	f.addFile("main.go", "main.tmpl")
 	f.addFile("wercker.yml", "wercker.tmpl")
 
-	return Project{
+	return project{
 		Name:       name,
 		RelDir:     relDir,
 		ProjectDir: path,
@@ -38,7 +38,7 @@ func NewProject(path string) Project {
 	}
 }
 
-func (p Project) Write(templatePath string) error {
+func (p project) write(templatePath string) error {
 	err := os.Mkdir(p.ProjectDir, os.ModePerm)
 	if err != nil {
 		return err
@@ -47,11 +47,13 @@ func (p Project) Write(templatePath string) error {
 	return p.Folder.render(templatePath, p)
 }
 
-func (p Project) CamelCaseName() string {
+// CamelCaseName returns a CamelCased name of the service
+func (p project) CamelCaseName() string {
 	return snaker.SnakeToCamel(p.Name)
 }
 
-func (p Project) SnakeCaseName() string {
+// SnakeCaseName returns a snake_cased_type name of the service
+func (p project) SnakeCaseName() string {
 	return snaker.CamelToSnake(p.Name)
 }
 

@@ -36,8 +36,8 @@ func new(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	p := NewProject(path)
-	err := p.Write(templatePath)
+	p := newProject(path)
+	err := p.write(templatePath)
 	if err != nil {
 		er(err)
 	}
