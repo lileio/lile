@@ -25,14 +25,3 @@ build:
     - script:
         name: copy binary
         code: cp {{ .SnakeCaseName }} "$WERCKER_OUTPUT_DIR"
-deploy:
-  box: golang
-  steps:
-    - internal/docker-scratch-push:
-        username: $DOCKER_USERNAME
-        password: $DOCKER_PASSWORD
-        tag: latest
-        repository: # username/project
-        registry: https://registry.hub.docker.com
-        cmd: ./{{.SnakeCaseName}}
-        ports: "8000"

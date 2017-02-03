@@ -50,12 +50,12 @@ func (f *folder) render(templatePath string, p project) error {
 
 		file, err := os.Create(v.AbsPath)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		err = t.Execute(file, p)
 		if err != nil {
-			return nil
+			return err
 		}
 	}
 

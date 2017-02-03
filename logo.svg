@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="315px" height="122px" viewBox="0 0 315 122" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 42 (36781) - http://www.bohemiancoding.com/sketch -->
+    <title>Slice 1</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="ursa-major">
+            <g id="Capa_1">
+                <g id="Group">
+                    <circle id="Oval" fill="#556080" fill-rule="nonzero" cx="61" cy="61" r="61"></circle>
+                    <g transform="translate(10.166667, 10.166667)" fill-rule="nonzero" id="Oval" fill="#F3D55B">
+                        <ellipse cx="12.2" cy="99.6333333" rx="2.03333333" ry="2.03333333"></ellipse>
+                        <ellipse cx="2.03333333" cy="42.7" rx="2.03333333" ry="2.03333333"></ellipse>
+                        <circle cx="42.7" cy="40.6666667" r="2.03333333"></circle>
+                        <ellipse cx="87.4333333" cy="2.03333333" rx="2.03333333" ry="2.03333333"></ellipse>
+                        <circle cx="97.6" cy="42.7" r="2.03333333"></circle>
+                    </g>
+                    <ellipse id="Oval" fill="#8697CB" fill-rule="nonzero" cx="107.766667" cy="85.4" rx="8.13333333" ry="8.13333333"></ellipse>
+                    <ellipse id="Oval" fill="#8697CB" fill-rule="nonzero" cx="81.8864" cy="111.833333" rx="8.13333333" ry="8.13333333"></ellipse>
+                    <ellipse id="Oval" fill="#8697CB" fill-rule="nonzero" cx="50.8333333" cy="79.3" rx="8.13333333" ry="8.13333333"></ellipse>
+                    <circle id="Oval" fill="#8697CB" fill-rule="nonzero" cx="76.1361333" cy="52.8666667" r="10.1666667"></circle>
+                    <path d="M69.7474,60.7092333 L56.73,73.7266333" id="Shape" stroke="#8697CB" stroke-width="2" stroke-linecap="round"></path>
+                    <path d="M101.7663,79.9527 L82.5228333,60.7092333" id="Shape" stroke="#8697CB" stroke-width="2" stroke-linecap="round"></path>
+                    <path d="M87.6387,106.083067 L102.319367,91.4003667" id="Shape" stroke="#8697CB" stroke-width="2" stroke-linecap="round"></path>
+                    <polyline id="Shape" stroke="#8697CB" stroke-width="2" stroke-linecap="round" points="55.7702667 85.7172 76.1361333 106.083067 76.1361333 106.083067"></polyline>
+                    <ellipse id="Oval" fill="#8697CB" fill-rule="nonzero" cx="50.8333333" cy="20.3333333" rx="6.1" ry="6.1"></ellipse>
+                    <ellipse id="Oval" fill="#8697CB" fill-rule="nonzero" cx="12.2" cy="12.2" rx="6.1" ry="6.1"></ellipse>
+                    <path d="M75.2333333,46.7666667 L54.9,24.4" id="Shape" stroke="#8697CB" stroke-width="2" stroke-linecap="round"></path>
+                    <path d="M44.7333333,18.3 L18.3,12.2" id="Shape" stroke="#8697CB" stroke-width="2" stroke-linecap="round"></path>
+                    <circle id="Oval" fill="#F3D55B" fill-rule="nonzero" cx="50.8333333" cy="79.3" r="5.2582"></circle>
+                    <ellipse id="Oval" fill="#F3D55B" fill-rule="nonzero" cx="81.8864" cy="111.833333" rx="5.2582" ry="5.2582"></ellipse>
+                    <ellipse id="Oval" fill="#F3D55B" fill-rule="nonzero" cx="107.766667" cy="85.4" rx="3.82063333" ry="3.82063333"></ellipse>
+                    <ellipse id="Oval" fill="#F3D55B" fill-rule="nonzero" cx="76.1361333" cy="52.8666667" rx="5.85396667" ry="5.85396667"></ellipse>
+                    <circle id="Oval" fill="#F3D55B" fill-rule="nonzero" cx="50.8333333" cy="20.3333333" r="2.03333333"></circle>
+                    <ellipse id="Oval" fill="#F3D55B" fill-rule="nonzero" cx="12.2" cy="12.2" rx="2.03333333" ry="2.03333333"></ellipse>
+                </g>
+            </g>
+        </g>
+        <text id="Lile" font-family="HiraginoSans-W0, Hiragino Sans" font-size="70" font-weight="200" fill="#000000">
+            <tspan x="141" y="71">Lile</tspan>
+        </text>
+        <text id="easy-gRPC-services" font-family="HelveticaNeue-Thin, Helvetica Neue" font-size="20" font-weight="300" fill="#000000">
+            <tspan x="147" y="100">easy gRPC services</tspan>
+        </text>
+    </g>
+</svg>
