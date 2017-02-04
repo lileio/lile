@@ -113,7 +113,22 @@ See [here](http://blog.wercker.com/kubernetes-workflows-tutorial) for an end to 
 
 By default Lile will add the Prometheus gRPC interceptor and collect gRPC metrics.
 
-You can access these at `/metrics` on port `8080` by default.
+You can access these at `/metrics` on port `8080` by default or change them like below:
+
+``` go
+lile.NewServer(
+  lile.PrometheusPort(":9999"),
+  lile.PrometheusAddr("/prom"),
+)
+```
+
+You can disable prometheus interception completely by setting that option:
+
+``` go
+lile.NewServer(
+  lile.PrometheusEnabled(false),
+)
+```
 
 ## Tracing
 
