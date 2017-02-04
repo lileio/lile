@@ -59,6 +59,34 @@ func Name(n string) Option {
 	}
 }
 
+// Port sets the gRPC port of the service
+func Port(n string) Option {
+	return func(o *options) {
+		o.port = n
+	}
+}
+
+// PrometheusEnabled sets wether prometheus metrics are enabled
+func PrometheusEnabled(b bool) Option {
+	return func(o *options) {
+		o.prometheus = b
+	}
+}
+
+// PrometheusPort sets the prometheus metrics http port
+func PrometheusPort(p string) Option {
+	return func(o *options) {
+		o.prometheusPort = p
+	}
+}
+
+// PrometheusAddr sets the url for prometheus metrics (i.e. /metrics)
+func PrometheusAddr(a string) Option {
+	return func(o *options) {
+		o.prometheusAddr = a
+	}
+}
+
 // AddUnaryInterceptor adds a unary interceptor to the gRPC server
 func AddUnaryInterceptor(unint grpc.UnaryServerInterceptor) Option {
 	return func(o *options) {

@@ -146,20 +146,19 @@ Lile supports opentracing compatible tracers via [otgrpc](https://github.com/grp
 You can set a tracer using the `Tracer` option..
 
 ``` go
-	zipkin := zipkin.NewTracer(
-		zipkin.NewRecorder(collector, false, opts.name, opts.name)
-	)
+zipkin := zipkin.NewTracer(
+  zipkin.NewRecorder(collector, false, opts.name, opts.name)
+)
 
-	lile.NewServer(
-		lile.Tracer(zipkin),
-	)
-
+lile.NewServer(
+  lile.Tracer(zipkin),
+)
 ```
 
 You can enable/disable tracing the `TracingEnabled` option..
 
 ``` go
-	lile.NewServer(
-		lile.TracingEnabled(false),
-	)
+lile.NewServer(
+  lile.TracingEnabled(false),
+)
 ```
