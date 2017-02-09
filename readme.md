@@ -1,5 +1,5 @@
 
-# ![logo](https://cdn.rawgit.com/lileio/lile/readme/logo.svg)
+# ![logo](https://cdn.rawgit.com/lileio/lile/aa45e6ae200692b4668bc6e370e1757e7753a514/logo.svg)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![wercker status](https://app.wercker.com/status/655c3bdcdeb2334335fda4959f3ad5cb/s/master "wercker status")](https://app.wercker.com/project/byKey/655c3bdcdeb2334335fda4959f3ad5cb) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile)
 
