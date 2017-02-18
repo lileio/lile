@@ -28,7 +28,8 @@ func new(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	path := projectPath(args[0])
+	name := args[0]
+	path := projectPath(name)
 	fmt.Printf("Creating project in %s\n", path)
 
 	if !askIsOK() {
@@ -36,7 +37,8 @@ func new(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	p := newProject(path)
+	p := newProject(path, name)
+
 	err := p.write(templatePath)
 	if err != nil {
 		er(err)

@@ -10,13 +10,14 @@ import (
 )
 
 type project struct {
-	Name       string
-	ProjectDir string
-	RelDir     string
-	Folder     folder
+	Name         string
+	RelativeName string
+	ProjectDir   string
+	RelDir       string
+	Folder       folder
 }
 
-func newProject(path string) project {
+func newProject(path, relativeName string) project {
 	name := lastFromSplit(path, string(os.PathSeparator))
 	relDir := projectBase(path)
 
@@ -26,15 +27,18 @@ func newProject(path string) project {
 	s.addFile("server_test.go", "server_test.tmpl")
 	f.addFolder(name).addFile(name+".proto", "proto.tmpl")
 	f.addFile("Makefile", "Makefile.tmpl")
+	f.addFile("Dockerfile", "Dockerfile.tmpl")
 	f.addFile("readme.md", "readme.tmpl")
 	f.addFile("main.go", "main.tmpl")
-	f.addFile("wercker.yml", "wercker.tmpl")
+	f.addFile(".travis.yml", "travis.tmpl")
+	f.addFile(".gitignore", "gitignore.tmpl")
 
 	return project{
-		Name:       name,
-		RelDir:     relDir,
-		ProjectDir: path,
-		Folder:     f,
+		Name:         name,
+		RelativeName: relativeName,
+		RelDir:       relDir,
+		ProjectDir:   path,
+		Folder:       f,
 	}
 }
 

@@ -11,3 +11,7 @@ test:
 
 benchmark:
 	go test -bench=./... -benchmem -benchtime 10s
+
+docker:
+	GOOS=linux GOARCH=amd64 go build -o build/{{ .Name }} .
+	docker build . -t {{.RelativeName}}:latest

@@ -1,0 +1,18 @@
+language: go
+sudo: required
+services:
+  - docker
+
+go:
+  - 1.8
+
+script:
+  - go get -t ./...
+  - make test
+
+# after_success:
+#   - if [ "$TRAVIS_BRANCH" == "master" ]; then
+#     make docker;
+#     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+#     docker push {{.RelativeName}};
+#     fi

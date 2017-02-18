@@ -1,7 +1,7 @@
 
 # ![logo](https://cdn.rawgit.com/lileio/lile/aa45e6ae200692b4668bc6e370e1757e7753a514/logo.svg)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![wercker status](https://app.wercker.com/status/655c3bdcdeb2334335fda4959f3ad5cb/s/master "wercker status")](https://app.wercker.com/project/byKey/655c3bdcdeb2334335fda4959f3ad5cb) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile)
+[![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![Build Status](https://travis-ci.org/lileio/lile.svg?branch=master)](https://travis-ci.org/lileio/lile) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile)
 
 Lile is a generator and library to help you build [gRPC](http://grpc.io) based services easily in Go (other languages coming soon). It includes default metrics and tracing out of the box and be configured if needed.
 
@@ -46,14 +46,16 @@ This will generate a new 'project' for your service will the following structure
 ├── user_service
 │   └── user_service.proto
 ├── Makefile
+├── Dockerfile
 ├── readme.md
 ├── main.go
-└── wercker.yml
+└── .travis.yml
 ```
 
 You can then generate the proto and run the test suite!
 
 ```
+go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
 make proto
 make test
 ```
@@ -68,8 +70,10 @@ Hopefully you have a working test suite!
   - [run](#run)
   - [test](#test)
   - [benchmark](#benchmark)
-- [Wercker](#wercker)
-- [Prometheus](#prometheus)
+  - [docker](#docker)
+- [Travis](#travis)
+- [Monitoring](#monitoring)
+  - [Prometheus](#prometheus)
 - [Tracing](#tracing)
   - [Zipkin via HTTP](#zipkin-via-http)
   - [Zipkin via Scribe](#zipkin-via-scribe)
@@ -100,16 +104,19 @@ Lile generate a [Makefile](http://mrbook.org/blog/tutorials/make/) as part of th
 
 `make benchmark` is the same behaviour as `make test` but runs the Go benchmark suite, the default time is 10s.
 
-## Wercker
+#### docker
 
-Lile generates a [wercker.yml](http://devcenter.wercker.com/docs/wercker-yml/creating-a-yml) file with some default continues integration steps, namely `get`, `test`, `build` and `copy`.
+`make docker` cross compiles into a linux arch64 app and then copies that over to an arch linux container by default.
 
-If you're not familar with Wercker then take a look! (I don't work for them). With the werkcer.yml file already available in the repo, you should be able to login with Github and simply enable the repository and watch it build the app via Docker.
+## Travis
 
-See [here](http://blog.wercker.com/kubernetes-workflows-tutorial) for an end to end tutorial on a Wercker pipeline that builds, creates a docker container and pushes to a Kubernetes cluster.
+Lile generates a Travis CI yaml file which runs the test suite by default. Support is included for pushing to a docker repositoy, but needs uncommenting.
 
+## Monitoring
 
-## Prometheus
+Lile includes built in app monitoring, which by default is prometheus.
+
+### Prometheus
 
 By default Lile will add the Prometheus gRPC interceptor and collect gRPC metrics.
 
