@@ -1,11 +1,10 @@
-
 # ![logo](https://cdn.rawgit.com/lileio/lile/aa45e6ae200692b4668bc6e370e1757e7753a514/logo.svg)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![Build Status](https://travis-ci.org/lileio/lile.svg?branch=master)](https://travis-ci.org/lileio/lile) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile)
 
 Lile is a generator and library to help you build [gRPC](http://grpc.io) based services easily in Go (other languages coming soon). It includes default metrics and tracing out of the box and be configured if needed.
 
-A service built with Lile can easily remove Lile as a dependency later as a Lile service just speaks gRPC.
+A service built with Lile can easily remove Lile as a dependency later as a Lile service just speaks gRPC but provides some default setup and tooling.
 
 ![](http://g.recordit.co/0kUVNorbsZ.gif)
 
@@ -120,7 +119,7 @@ Lile includes built in app monitoring, which by default is prometheus.
 
 By default Lile will add the Prometheus gRPC interceptor and collect gRPC metrics.
 
-You can access these at `/metrics` on port `8080` by default or change them like below:
+You can access these at `/metrics` on port `8080` or change them like below:
 
 ``` go
 lile.NewServer(
@@ -177,7 +176,7 @@ lile.NewServer(
 )
 ```
 
-You can enable/disable tracing the `TracingEnabled` option..
+You can disable tracing completely using the `TracingEnabled` option
 
 ``` go
 lile.NewServer(
