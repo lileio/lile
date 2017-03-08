@@ -1,5 +1,6 @@
 FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates
-ADD build/{{.Name}} /
-CMD ["/{{.Name}}"]
+COPY . /src/{{ .RelDir }}
+ADD build/{{.Name}} /bin
+CMD ["{{.Name}}", "server"]

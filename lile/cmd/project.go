@@ -25,11 +25,17 @@ func newProject(path, relativeName string) project {
 	s := f.addFolder("server")
 	s.addFile("server.go", "server.tmpl")
 	s.addFile("server_test.go", "server_test.tmpl")
-	f.addFolder(name).addFile(name+".proto", "proto.tmpl")
+
+	cmd := f.addFolder(name)
+	cmd.addFile("main.go", "cmd_main.tmpl")
+	cmds := cmd.addFolder("cmd")
+	cmds.addFile("root.go", "cmd_root.tmpl")
+	cmds.addFile("server.go", "cmd_server.tmpl")
+
+	f.addFile(name+".proto", "proto.tmpl")
 	f.addFile("Makefile", "Makefile.tmpl")
 	f.addFile("Dockerfile", "Dockerfile.tmpl")
 	f.addFile("readme.md", "readme.tmpl")
-	f.addFile("main.go", "main.tmpl")
 	f.addFile(".travis.yml", "travis.tmpl")
 	f.addFile(".gitignore", "gitignore.tmpl")
 

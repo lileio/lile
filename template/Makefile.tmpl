@@ -1,10 +1,8 @@
 # vi: ft=make
-.PHONY: run proto test benchmark
-run:
-	go run main.go
+.PHONY: proto test benchmark get ci docker
 
 proto:
-	protoc -I {{.Name}}/ {{.Name}}/{{ .Name }}.proto --go_out=plugins=grpc:{{ .Name }}
+	protoc -I . {{.Name}}.proto --go_out=plugins=grpc:$$GOPATH/src
 
 test:
 	go test -v ./...
@@ -12,6 +10,11 @@ test:
 benchmark:
 	go test -bench=. -benchmem -benchtime 10s
 
+get:
+	go get -u -t ./...
+
+ci: get test
+
 docker:
-	GOOS=linux GOARCH=amd64 go build -o build/{{ .Name }} .
+	GOOS=linux GOARCH=amd64 go build -o build/{{ .Name }} ./{{ .Name }}
 	docker build . -t {{.RelativeName}}:latest
