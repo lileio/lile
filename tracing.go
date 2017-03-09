@@ -22,7 +22,7 @@ func tracerFromEnv(opts options) *opentracing.Tracer {
 		)
 
 		if err != nil {
-			logrus.Printf("Zipkin connection error: %s", err)
+			logrus.Printf("Zipkin connection error: %s, host %s", err, u)
 		}
 
 		tracer, _ := jaeger.NewTracer(
@@ -33,7 +33,9 @@ func tracerFromEnv(opts options) *opentracing.Tracer {
 			),
 		)
 
-		logrus.Printf("Zipkin: using HTTP collector at %s", u)
+		opentracing.InitGlobalTracer(tracer)
+
+		logrus.Printf("Zipkin: using HTTP at %s", u)
 		return &tracer
 	}
 
@@ -47,7 +49,7 @@ func tracerFromEnv(opts options) *opentracing.Tracer {
 		)
 
 		if err != nil {
-			logrus.Printf("Zipkin connection error: %s", err)
+			logrus.Printf("Zipkin connection error: %s, host %s", err, u)
 		}
 
 		t, err := zipkin.NewTracer(
@@ -59,12 +61,11 @@ func tracerFromEnv(opts options) *opentracing.Tracer {
 			logrus.Printf("Zipkin tracer error: %s", err)
 		}
 
+		opentracing.InitGlobalTracer(t)
+
+		logrus.Printf("Zipkin: using Kafka at %s", u)
 		return &t
 	}
 
 	return nil
-}
-
-func zipkinTracer(opts options) *opentracing.Tracer {
-	return tracerFromEnv(opts)
 }

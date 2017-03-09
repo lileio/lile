@@ -84,6 +84,7 @@ go run ./user_service/main.go
   - [proto](#proto)
   - [run](#run)
   - [test](#test)
+  - [ci](#ci)
   - [benchmark](#benchmark)
   - [docker](#docker)
 - [Travis](#travis)
@@ -91,7 +92,6 @@ go run ./user_service/main.go
   - [Prometheus](#prometheus)
 - [Tracing](#tracing)
   - [Zipkin via HTTP](#zipkin-via-http)
-  - [Zipkin via Scribe](#zipkin-via-scribe)
   - [Zipkin via Kafka](#zipkin-via-kafka)
   - [opentracing](#opentracing)
 
@@ -170,7 +170,7 @@ To have Lile send traces to Zipkin via Kakfa (to then be collected with a Zipkin
 
 It can be a single Kafka host or multiple hosts seperated by comma
 
-`ZIPKIN_KAFKA_ENDPOINTS=10.0.0.1,10.0.0.2`
+`ZIPKIN_KAFKA_ENDPOINTS=10.0.0.1:9092,10.0.0.2:9092`
 
 #### Opentracing
 
