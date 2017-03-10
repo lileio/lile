@@ -10,7 +10,7 @@ The utility library extends the basic gRPC server with nice defaults like metric
 
 A service built with Lile can easily remove Lile as a dependency as Lile is NOT a framework, just a set of helpers.
 
-![](http://g.recordit.co/0kUVNorbsZ.gif)
+# ![logo](https://dl.dropboxusercontent.com/u/7788162/lile.png)
 
 ## Lileio
 
@@ -157,6 +157,10 @@ lile.NewServer(
 ## Tracing
 
 Lile support opentracing tracers and ships with [Zipkin](http://zipkin.io/) compatiable tracing by default. Though you will need to set an ENV var to enable the feature.
+
+Lile sets the gRPC tracer when the tracing option is set, below is [Google Cloud Tracing](https://cloud.google.com/trace/) collected via the [stackdriver zipkin](https://github.com/GoogleCloudPlatform/stackdriver-zipkin) Docker container
+
+# ![trace](https://dl.dropboxusercontent.com/u/7788162/trace.png)
 
 #### Zipkin via HTTP
 
