@@ -5,6 +5,7 @@ package lile
 import (
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -12,6 +13,7 @@ import (
 	"github.com/mwitkow/go-grpc-middleware"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 )
 
@@ -179,4 +181,41 @@ func (s *Server) ListenAndServe() error {
 	}
 
 	return s.Serve(lis)
+}
+
+// NewTestServer is a helper function to create a gRPC server on a unix socket
+// it returns the socket location and a func to call which starts the server
+func NewTestServer(opt ...Option) (string, func()) {
+	// Create a temp random unix socket
+	uid := uuid.NewV1().String()
+	skt := "/tmp/" + uid
+
+	ln, err := net.Listen("unix", skt)
+	if err != nil {
+		panic(err)
+	}
+
+	ts := NewServer(opt...)
+
+	return skt, func() {
+		ts.Serve(ln)
+	}
+}
+
+func TestConn(addr string) *grpc.ClientConn {
+	conn, err := grpc.Dial(
+		addr,
+		grpc.WithDialer(func(addr string, d time.Duration) (net.Conn, error) {
+			return net.Dial("unix", addr)
+		}),
+		grpc.WithInsecure(),
+		grpc.WithTimeout(1*time.Second),
+		grpc.WithBlock(),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return conn
 }
