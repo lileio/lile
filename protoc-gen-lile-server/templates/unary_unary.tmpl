@@ -1,0 +1,12 @@
+package server
+
+import (
+	"errors"
+
+	context "golang.org/x/net/context"
+  {{ dedupImports .InputImport .OutputImport }}
+)
+
+func (s Server) {{ .Name }}(ctx context.Context, r *{{ .InType }}) (*{{ .OutType }}, error) {
+	return nil, errors.New("not yet implemented")
+}

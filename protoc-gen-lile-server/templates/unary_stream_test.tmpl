@@ -1,0 +1,32 @@
+package server
+
+import (
+	"testing"
+  "io"
+
+	context "golang.org/x/net/context"
+  {{ dedupImports "github.com/stretchr/testify/assert" .InputImport }}
+)
+
+func Test{{ .Name }}(t *testing.T) {
+	ctx := context.Background()
+  req := &{{ .InType }}{}
+
+  stream, err := cli.{{.Name}}(ctx, req)
+	assert.Nil(t, err)
+
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			assert.Fail(t, err.Error())
+			break
+		}
+
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+	}
+}

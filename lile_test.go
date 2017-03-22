@@ -111,3 +111,12 @@ func TestListenAndServe(t *testing.T) {
 	s := NewServer()
 	go s.ListenAndServe()
 }
+
+func TestTestServer(t *testing.T) {
+	addr, serve := NewTestServer()
+	assert.NotEmpty(t, addr)
+	assert.NotNil(t, serve)
+
+	conn := TestConn(addr)
+	assert.NotNil(t, conn)
+}

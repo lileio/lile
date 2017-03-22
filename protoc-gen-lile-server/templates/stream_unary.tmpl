@@ -1,0 +1,30 @@
+package server
+
+import (
+	"errors"
+  "fmt"
+  "io"
+
+  {{ dedupImports .GoPackage .OutputImport }}
+)
+
+func (s Server) {{ .Name }}(stream {{.ImportName}}.{{ .ServiceName }}_{{.Name}}Server) error {
+	for {
+		req, err := stream.Recv()
+
+		// Do something useful with req
+		if req != nil {
+			fmt.Printf("req = %+v\n", req)
+		}
+
+		if err == io.EOF {
+      return stream.SendAndClose(&{{ .OutType }}{})
+		}
+
+		if err != nil {
+			return err
+		}
+
+		return errors.New("not yet implemented")
+	}
+}

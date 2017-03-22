@@ -1,0 +1,17 @@
+package server
+
+import (
+	"testing"
+
+	context "golang.org/x/net/context"
+  {{ dedupImports "github.com/stretchr/testify/assert" .InputImport }}
+)
+
+func Test{{ .Name }}(t *testing.T) {
+	ctx := context.Background()
+  req := &{{ .InType }}{}
+
+  res, err := cli.{{ .Name }}(ctx, req)
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+}

@@ -1,22 +1,31 @@
 package server
 
 import (
-	"context"
+  "os"
 	"testing"
 
+  "google.golang.org/grpc"
+
 	"{{ .RelDir }}"
-	"github.com/stretchr/testify/assert"
+  "github.com/lileio/lile"
 )
 
 var s = Server{}
+var cli {{ .SnakeCaseName }}.{{ .CamelCaseName }}Client
 
-func TestRead(t *testing.T) {
-	ctx := context.Background()
-	req := &{{ .SnakeCaseName }}.Request{
-		Id: "somethingidlike",
+func TestMain(m *testing.M) {
+	impl := func(g *grpc.Server) {
+		{{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
 	}
-	res, err := s.Read(ctx, req)
 
-	assert.Nil(t, err)
-	assert.NotEmpty(t, res.Id)
+	addr, serve := lile.NewTestServer(
+		lile.Name("{{ .SnakeCaseName }}_test"),
+		lile.Implementation(impl),
+	)
+
+	go serve()
+
+	cli = {{ .SnakeCaseName }}.New{{ .CamelCaseName }}Client(lile.TestConn(addr))
+
+	os.Exit(m.Run())
 }

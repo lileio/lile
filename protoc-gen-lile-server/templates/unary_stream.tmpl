@@ -1,0 +1,16 @@
+package server
+
+import (
+	"errors"
+  {{ dedupImports .GoPackage .InputImport .OutputImport }}
+)
+
+func (s Server) {{ .Name }}(r *{{ .InType }}, stream {{.ImportName}}.{{ .ServiceName }}_{{.Name}}Server) error {
+  res := &{{.OutType}}{}
+  err := stream.Send(res)
+  if err != nil {
+    return err
+  }
+
+	return errors.New("not yet implemented")
+}

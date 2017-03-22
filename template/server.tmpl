@@ -1,23 +1,7 @@
 package server
 
-import (
-	"errors"
-
-	context "golang.org/x/net/context"
-
-	"{{ .RelDir }}"
-)
+import "{{ .RelDir }}"
 
 type Server struct {
 	{{ .SnakeCaseName }}.{{ .CamelCaseName }}Server
-}
-
-var (
-	ErrAccountNotFound = errors.New("Something went wrong")
-)
-
-func (s Server) Read(ctx context.Context, r *{{ .SnakeCaseName }}.Request) (*{{ .SnakeCaseName }}.Response, error) {
-	return &{{ .SnakeCaseName }}.Response{
-		Id:	r.Id,
-	}, nil
 }
