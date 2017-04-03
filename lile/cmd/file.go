@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"go/format"
 	"html/template"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/xlab/treeprint"
 )
@@ -53,9 +56,32 @@ func (f *folder) render(templatePath string, p project) error {
 			return err
 		}
 
-		err = t.Execute(file, p)
-		if err != nil {
-			return err
+		if strings.Contains(v.AbsPath, ".go") {
+			var out bytes.Buffer
+			err = t.Execute(&out, p)
+			if err != nil {
+				return err
+			}
+
+			b, err := format.Source(out.Bytes())
+			if err != nil {
+				return err
+			}
+
+			_, err = file.Write(b)
+			if err != nil {
+				return err
+			}
+
+			err = file.Close()
+			if err != nil {
+				return err
+			}
+		} else {
+			err = t.Execute(file, p)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
