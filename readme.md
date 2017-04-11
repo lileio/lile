@@ -29,7 +29,7 @@ To work with Lile you'll need a working Go environment and protobuf/grpc install
 Install Lile by running:
 
 ```Bash
-go get -u github.com/lileio/lile/lile
+go get -u github.com/lileio/lile/...
 ```
 
 Then you can generate your new gRPC service by calling

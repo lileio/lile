@@ -77,6 +77,8 @@ func gen(i io.Reader, o io.Writer) {
 		path = *req.Parameter
 	}
 
+	fmt.Printf("path = %+v\n", path)
+
 	files := []*plugin.CodeGeneratorResponse_File{}
 	imports := []goimport{}
 
