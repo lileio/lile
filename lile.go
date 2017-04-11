@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/lileio/lile/pubsub"
 	"github.com/mwitkow/go-grpc-middleware"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -28,6 +29,9 @@ type options struct {
 	unaryInts      []grpc.UnaryServerInterceptor
 	streamInts     []grpc.StreamServerInterceptor
 	implementation registerImplementation
+	pubsubProvider pubsub.Provider
+	publishers     map[string]string
+	subscriber     pubsub.Subscriber
 	tracing        bool
 	tracer         *opentracing.Tracer
 }
@@ -124,6 +128,32 @@ func Implementation(impl registerImplementation) Option {
 	}
 }
 
+// PubSubProvider registers the client for publishers and subscriptions
+func PubSubProvider(p pubsub.Provider) Option {
+	return func(o *options) {
+		o.pubsubProvider = p
+	}
+}
+
+// Publishers is a map[string]string of RPC methods and their event names, e.g
+//
+// lile.Publishers(map[string]string{
+// 	"Create": "account_service.created",
+// })
+//
+func Publishers(pubs map[string]string) Option {
+	return func(o *options) {
+		o.publishers = pubs
+	}
+}
+
+// Subscriber registers the subscriber for pubsub subscriptions
+func Subscriber(sub pubsub.Subscriber) Option {
+	return func(o *options) {
+		o.subscriber = sub
+	}
+}
+
 // NewServer creates a lile server (gRPC server compatible) with N options
 func NewServer(opt ...Option) *Server {
 	opts := defaultOptions()
@@ -146,6 +176,31 @@ func NewServer(opt ...Option) *Server {
 				otgrpc.OpenTracingServerInterceptor(*opts.tracer),
 			)(&opts)
 		}
+	}
+
+	if opts.pubsubProvider == nil {
+		opts.pubsubProvider = PubSubProviderFromEnv(opts)
+	}
+
+	client := &pubsub.Client{Provider: opts.pubsubProvider}
+
+	if opts.publishers != nil {
+		if opts.pubsubProvider == nil {
+			logrus.Warnf("lile pubsub: publishers specified but no Provider is set")
+		} else {
+			client.InterceptorMethods = opts.publishers
+			AddUnaryInterceptor(
+				pubsub.UnaryServerInterceptor(client),
+			)(&opts)
+		}
+	}
+
+	if opts.subscriber != nil {
+		if opts.pubsubProvider == nil {
+			logrus.Warnf("lile pubsub: subscriber specified but no Provider is set")
+		}
+
+		opts.subscriber.Setup(client)
 	}
 
 	s := grpc.NewServer(
@@ -202,6 +257,7 @@ func NewTestServer(opt ...Option) (string, func()) {
 	}
 }
 
+// TestConn is a connection that connects to a sockets based test connection
 func TestConn(addr string) *grpc.ClientConn {
 	conn, err := grpc.Dial(
 		addr,

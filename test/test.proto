@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package test;
+
+// The request message containing the user's name.
+message Account {
+  string name = 1;
+}
