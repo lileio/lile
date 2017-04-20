@@ -83,7 +83,7 @@ func (g *GoogleCloud) Publish(ctx context.Context, topic string, msg proto.Messa
 }
 
 func (g *GoogleCloud) Subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool) {
-	g.subscribe(topic, h, deadline, autoAck, make(chan bool))
+	g.subscribe(topic, h, deadline, autoAck, make(chan bool, 1))
 }
 
 func (g *GoogleCloud) subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool, ready chan<- bool) {
