@@ -40,19 +40,6 @@ func NewGoogleCloud(project_id string, subName string) (*GoogleCloud, error) {
 }
 
 func (g *GoogleCloud) Publish(ctx context.Context, topic string, msg proto.Message) error {
-	b, err := proto.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("Cant marshal msg for topic %s, err: %v", topic, err)
-	}
-
-	mutex.Lock()
-	t, err := g.getTopic(topic)
-	mutex.Unlock()
-	if err != nil {
-		return err
-	}
-
-	attrs := map[string]string{}
 	var parentCtx opentracing.SpanContext
 	if parent := opentracing.SpanFromContext(ctx); parent != nil {
 		parentCtx = parent.Context()
@@ -68,17 +55,34 @@ func (g *GoogleCloud) Publish(ctx context.Context, topic string, msg proto.Messa
 
 	defer clientSpan.Finish()
 
+	b, err := proto.Marshal(msg)
+	if err != nil {
+		logrus.Errorf("Cant marshal msg for topic %s, err: %v", topic, err)
+	}
+
+	clientSpan.LogEvent("get topic")
+	mutex.Lock()
+	t, err := g.getTopic(topic)
+	mutex.Unlock()
+	clientSpan.LogEvent("topic received")
+	if err != nil {
+		return err
+	}
+
+	attrs := map[string]string{}
 	tracer.Inject(
 		clientSpan.Context(),
 		opentracing.TextMap,
 		opentracing.TextMapCarrier(attrs))
 
+	clientSpan.LogEvent("publish")
 	res := t.Publish(ctxNet.Background(), &pubsub.Message{
 		Data:       b,
 		Attributes: attrs,
 	})
 
 	_, err = res.Get(ctxNet.Background())
+	clientSpan.LogEvent("publish confirmed")
 	return err
 }
 
@@ -183,20 +187,12 @@ func (g *GoogleCloud) getTopic(name string) (*pubsub.Topic, error) {
 	}
 
 	ctx := ctxNet.Background()
-	topic := g.client.Topic(name)
-	ok, err := topic.Exists(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if ok {
-		return topic, nil
-	}
-
 	t, err := g.client.CreateTopic(ctx, name)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "exists") {
 		return nil, err
 	}
+
+	g.topics[name] = t
 
 	return t, nil
 }
