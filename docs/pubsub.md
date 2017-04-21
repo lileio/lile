@@ -6,6 +6,6 @@ Each service should receive a message "at least once", meaning that if 6 copies 
 
 In practise this works similarly to [Rabbit MQ's Pub Sub](https://www.rabbitmq.com/tutorials/tutorial-three-go.html) and [Google's Pub Sub](https://cloud.google.com/go/getting-started/using-pub-sub). Effectively each logical subscriber group has it's own queue which can pull messages and messages are distributed to all queues available.
 
-If a particular service is not interested in messages from a certain service they can simply ignore those messages.
+Messages are in encoded in protobuf.
 
-
+Tracing should be implemented by all implementations.
