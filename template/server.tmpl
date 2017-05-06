@@ -1,7 +1,28 @@
 package server
 
-import "{{ .RelDir }}"
+import (
+	"{{ .RelDir }}"
+	"github.com/lileio/lile"
+	"google.golang.org/grpc"
+)
+
 
 type Server struct {
 	{{ .SnakeCaseName }}.{{ .CamelCaseName }}Server
 }
+
+func NewServer() *lile.Server {
+	    s := &Server{}
+
+	    impl := func(g *grpc.Server) {
+	      {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
+	    }
+
+	    return lile.NewServer(
+	      lile.Name("{{ .Name }}"),
+	      lile.Implementation(impl),
+	      lile.Publishers(map[string]string{}),
+	    )
+}
+
+

@@ -1,31 +1,18 @@
 package cmd
 
 import (
-	"log"
-
-	"{{ .RelDir }}"
 	"{{ .RelDir }}/server"
-	"github.com/lileio/lile"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
+
 )
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Run the gRPC server",
 	Run: func(cmd *cobra.Command, args []string) {
-    s := &server.Server{}
-
-    impl := func(g *grpc.Server) {
-      {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
-    }
-
-    err := lile.NewServer(
-      lile.Name("{{ .Name }}"),
-      lile.Implementation(impl),
-    ).ListenAndServe()
-
-    log.Fatal(err)
+		logrus.Fatal(server.NewServer().
+			ListenAndServe())
 	},
 }
 
