@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	context "golang.org/x/net/context"
-  {{ dedupImports .InputImport .OutputImport }}
+	{{ dedupImports .InputImport .OutputImport }}
 )
 
-func (s Server) {{ .Name }}(ctx context.Context, r *{{ .InType }}) (*{{ .OutType }}, error) {
+func (s {{ .ServiceName }}Server) {{ .Name }}(ctx context.Context, r *{{ .InType }}) (*{{ .OutType }}, error) {
 	return nil, errors.New("not yet implemented")
 }

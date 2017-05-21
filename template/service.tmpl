@@ -1,0 +1,32 @@
+package service
+
+import (
+	"github.com/lileio/lile"
+	"github.com/lileio/lile/fromenv"
+	"github.com/lileio/lile/metrics/prometheus"
+	"github.com/lileio/lile/rpc"
+	"{{ .RelDir }}"
+	"{{ .RelDir }}/server"
+	"{{ .RelDir }}/subscribers"
+	"google.golang.org/grpc"
+)
+
+var (
+	{{ .CamelCaseName }}Service = NewService()
+)
+
+func NewService() *lile.Service {
+	s := &server.{{ .CamelCaseName }}Server{}
+
+	impl := func(g *grpc.Server) {
+	      {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
+	}
+
+	return lile.NewService(
+		"{{ .Name }}",
+		prometheus.NewMonitor(),
+		rpc.Implementation(impl),
+		fromenv.PubSubProvider("{{ .Name }}"),
+		&subscribers.{{ .CamelCaseName }}ServiceSubscriber{},
+	)
+}

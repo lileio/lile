@@ -1,4 +1,4 @@
-package pubsub
+package google
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	ps "github.com/lileio/lile/pubsub"
 	ctxNet "golang.org/x/net/context"
 
 	"github.com/golang/protobuf/proto"
@@ -86,11 +87,11 @@ func (g *GoogleCloud) Publish(ctx context.Context, topic string, msg proto.Messa
 	return err
 }
 
-func (g *GoogleCloud) Subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool) {
+func (g *GoogleCloud) Subscribe(topic string, h ps.MsgHandler, deadline time.Duration, autoAck bool) {
 	g.subscribe(topic, h, deadline, autoAck, make(chan bool, 1))
 }
 
-func (g *GoogleCloud) subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool, ready chan<- bool) {
+func (g *GoogleCloud) subscribe(topic string, h ps.MsgHandler, deadline time.Duration, autoAck bool, ready chan<- bool) {
 	go func() {
 		var sub *pubsub.Subscription
 		var err error
@@ -103,7 +104,11 @@ func (g *GoogleCloud) subscribe(topic string, h MsgHandler, deadline time.Durati
 		for {
 			t := g.client.Topic(topic)
 			subName := g.subName + "--" + topic
-			sub, err = g.client.CreateSubscription(ctxNet.Background(), subName, t, deadline, nil)
+			sc := pubsub.SubscriptionConfig{
+				Topic:       t,
+				AckDeadline: deadline,
+			}
+			sub, err = g.client.CreateSubscription(ctxNet.Background(), subName, sc)
 			if err != nil && !strings.Contains(err.Error(), "AlreadyExists") {
 				d := b.Duration()
 				logrus.Errorf("Can't subscribe to topic: %s. Subscribing again in %s", err.Error(), d)
@@ -140,7 +145,7 @@ func (g *GoogleCloud) subscribe(topic string, h MsgHandler, deadline time.Durati
 				defer handlerSpan.Finish()
 				ctx = opentracing.ContextWithSpan(ctx, handlerSpan)
 
-				msg := Msg{
+				msg := ps.Msg{
 					ID:       m.ID,
 					Metadata: m.Attributes,
 					Data:     m.Data,

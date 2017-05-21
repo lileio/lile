@@ -12,20 +12,20 @@ import (
 )
 
 // UnaryServerInterceptor is a gRPC server-side interceptor that automatically publishes events
-func UnaryServerInterceptor(c *Client) grpc.UnaryServerInterceptor {
+func UnaryServerInterceptor(c *Client, methods map[string]string) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
 			return resp, err
 		}
 
-		if c.InterceptorMethods == nil {
+		if methods == nil {
 			return resp, err
 		}
 
 		methodParts := strings.Split(info.FullMethod, "/")
 		method := methodParts[len(methodParts)-1]
-		intercept, exist := c.InterceptorMethods[method]
+		intercept, exist := methods[method]
 		if exist {
 			msg, ok := (resp).(proto.Message)
 			if !ok {

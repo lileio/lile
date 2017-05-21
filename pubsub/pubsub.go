@@ -1,3 +1,4 @@
+//go:generate mockgen -source pubsub.go -destination pubsub_mock.go -package pubsub
 package pubsub
 
 import (
@@ -10,9 +11,6 @@ import (
 // Client holds a reference to a Provider
 type Client struct {
 	Provider Provider
-
-	// A map of gRPC method names to automatically publish for and their topic
-	InterceptorMethods map[string]string
 }
 
 // Provider is generic interface for a pub sub provider
@@ -63,3 +61,13 @@ type Handler interface{}
 
 // MsgHandler is the internal or raw message handler
 type MsgHandler func(c context.Context, m Msg) error
+
+type NoopProvider struct{}
+
+func (np NoopProvider) Publish(ctx context.Context, topic string, msg proto.Message) error {
+	return nil
+}
+
+func (np NoopProvider) Subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool) {
+	return
+}

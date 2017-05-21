@@ -1,122 +1,46 @@
-package lile
+package lile_test
 
 import (
 	"testing"
 
-	"google.golang.org/grpc"
-
-	"github.com/grpc-ecosystem/go-grpc-prometheus"
-	zipkin "github.com/openzipkin/zipkin-go-opentracing"
+	"github.com/golang/mock/gomock"
+	"github.com/lileio/lile"
+	"github.com/lileio/lile/pubsub"
+	"github.com/lileio/lile/rpc"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBlankNewServer(t *testing.T) {
-	s := NewServer()
+func TestBlankNewService(t *testing.T) {
+	s := lile.NewService("test_service")
 	assert.NotNil(t, s)
 }
 
-func TestName(t *testing.T) {
-	s := NewServer(
-		Name("somethingcool"),
-	)
+func TestRPCOptions(t *testing.T) {
+	s := lile.NewService("test_service", rpc.RPCPort(":9000"))
 	assert.NotNil(t, s)
-	assert.Equal(t, "somethingcool", s.opts.name)
+	assert.Equal(t, s.RPCOptions.Port, ":9000")
 }
 
-func TestPort(t *testing.T) {
-	s := NewServer(
-		Port(":9999"),
-	)
+func TestMonitor(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockMonitor := lile.NewMockMonitor(ctrl)
+	mockMonitor.EXPECT().InterceptRPC()
+	mockMonitor.EXPECT().Register(gomock.Any())
+
+	s := lile.NewService("test_service", mockMonitor)
 	assert.NotNil(t, s)
-	assert.Equal(t, ":9999", s.opts.port)
+	assert.NotNil(t, s.Monitor)
 }
 
-func TestPrometheusEnabled(t *testing.T) {
-	s := NewServer(
-		PrometheusEnabled(false),
-	)
+func TestPubSub(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mp := pubsub.NewMockProvider(ctrl)
+
+	s := lile.NewService("test_service", mp)
 	assert.NotNil(t, s)
-	assert.False(t, s.opts.prometheus)
-}
-
-func TestPrometheusPort(t *testing.T) {
-	s := NewServer(
-		PrometheusPort(":4321"),
-	)
-	assert.NotNil(t, s)
-	assert.Equal(t, ":4321", s.opts.prometheusPort)
-}
-
-func TestPrometheusAddr(t *testing.T) {
-	s := NewServer(
-		PrometheusAddr("/prom"),
-	)
-	assert.NotNil(t, s)
-	assert.Equal(t, "/prom", s.opts.prometheusAddr)
-}
-
-func TestUnary(t *testing.T) {
-	s := NewServer(
-		AddUnaryInterceptor(
-			grpc_prometheus.UnaryServerInterceptor,
-		),
-	)
-	assert.NotNil(t, s)
-	assert.NotEmpty(t, s.opts.unaryInts)
-}
-
-func TestStream(t *testing.T) {
-	s := NewServer(
-		AddStreamInterceptor(
-			grpc_prometheus.StreamServerInterceptor,
-		),
-	)
-	assert.NotNil(t, s)
-	assert.NotEmpty(t, s.opts.streamInts)
-}
-
-type someImpl struct {
-}
-
-func TestTracingEnabled(t *testing.T) {
-	s := NewServer(
-		TracingEnabled(false),
-	)
-	assert.NotNil(t, s)
-	assert.False(t, s.opts.tracing)
-}
-
-func TestTracing(t *testing.T) {
-	c, err := zipkin.NewHTTPCollector("http://zipkin/")
-	z, err := zipkin.NewTracer(zipkin.NewRecorder(c, false, "", ""))
-
-	s := NewServer(
-		Tracer(z),
-	)
-
-	assert.Nil(t, err)
-	assert.NotNil(t, s)
-	assert.NotNil(t, s.opts.tracer)
-}
-
-func TestImplementation(t *testing.T) {
-	s := NewServer(
-		Implementation(func(g *grpc.Server) {}),
-	)
-	assert.NotNil(t, s)
-	assert.NotEmpty(t, s.opts.implementation)
-}
-
-func TestListenAndServe(t *testing.T) {
-	s := NewServer()
-	go s.ListenAndServe()
-}
-
-func TestTestServer(t *testing.T) {
-	addr, serve := NewTestServer()
-	assert.NotEmpty(t, addr)
-	assert.NotNil(t, serve)
-
-	conn := TestConn(addr)
-	assert.NotNil(t, conn)
+	assert.NotNil(t, s.PubSubClient)
 }
