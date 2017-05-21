@@ -1,0 +1,18 @@
+package cmd
+
+import (
+	"{{ .RelDir }}/service"
+	"github.com/spf13/cobra"
+)
+
+var subscribeCmd = &cobra.Command{
+	Use:   "subscribe",
+	Short: "Subscribe to and process queue messages",
+	Run: func(cmd *cobra.Command, args []string) {
+		service.{{ .CamelCaseName }}Service.Subscribe()
+	},
+}
+
+func init() {
+	RootCmd.AddCommand(subscribeCmd)
+}

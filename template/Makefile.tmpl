@@ -1,14 +1,11 @@
 # vi: ft=make
-.PHONY: proto test benchmark get ci docker
+.PHONY: proto test get ci docker
 
 proto:
 	protoc -I . {{.Name}}.proto --lile-server_out=. --go_out=plugins=grpc:$$GOPATH/src
 
 test:
-	go test -v ./...
-
-benchmark:
-	go test -bench=. -benchmem -benchtime 10s
+	go test -v ./... -cover
 
 get:
 	go get -u -t ./...

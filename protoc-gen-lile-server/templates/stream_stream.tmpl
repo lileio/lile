@@ -8,7 +8,7 @@ import (
   {{ dedupImports .GoPackage .OutputImport }}
 )
 
-func (s Server) {{ .Name }}(stream {{.ImportName}}.{{ .ServiceName }}_{{.Name}}Server) error {
+func (s {{ .ServiceName }}Server) {{ .Name }}(stream {{.ImportName}}.{{ .ServiceName }}_{{.Name}}Server) error {
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {

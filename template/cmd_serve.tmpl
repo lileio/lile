@@ -1,0 +1,21 @@
+package cmd
+
+import (
+	"{{ .RelDir }}/service"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
+)
+
+var serveCmd = &cobra.Command{
+	Use:   "serve",
+	Short: "Run the RPC server",
+	Run: func(cmd *cobra.Command, args []string) {
+		logrus.Fatal(service.{{ .CamelCaseName }}Service.
+			ServeRPCInsecure())
+	},
+}
+
+func init() {
+	RootCmd.AddCommand(serveCmd)
+}
