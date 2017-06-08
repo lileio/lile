@@ -1,5 +1,13 @@
-FROM alpine:latest
+FROM golang:alpine AS build-env
+WORKDIR /usr/local/go/src/{{ .RelDir }}
+COPY . /usr/local/go/src/{{ .RelDir }}
+RUN apk update && apk upgrade && \
+    apk add --no-cache bash git openssh
+RUN go get ./...
+RUN go build -o build/{{.Name}} ./{{.Name}}
 
+
+FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 COPY . /src/{{ .RelDir }}
 ADD build/{{.Name}} /bin

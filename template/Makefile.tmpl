@@ -13,5 +13,4 @@ get:
 ci: get test
 
 docker:
-	GOOS=linux GOARCH=amd64 go build -o build/{{ .Name }} ./{{ .Name }}
 	docker build . -t {{.RelativeName}}:latest
