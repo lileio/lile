@@ -47,6 +47,10 @@ func Tracer(name string) opentracing.Tracer {
 		logrus.Infof("Using Zipkin HTTP tracer: %s", addr)
 	}
 
+	if collector == nil {
+		return opentracing.GlobalTracer()
+	}
+
 	// create recorder.
 	recorder := zipkin.NewRecorder(collector, false, "", name)
 
