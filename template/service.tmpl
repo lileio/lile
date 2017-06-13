@@ -22,11 +22,14 @@ func NewService() *lile.Service {
 	      {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
 	}
 
+	n := "{{ .Name }}"
+
 	return lile.NewService(
-		"{{ .Name }}",
-		prometheus.NewMonitor(),
+		n,
 		rpc.Implementation(impl),
-		fromenv.PubSubProvider("{{ .Name }}"),
 		&subscribers.{{ .CamelCaseName }}ServiceSubscriber{},
+		prometheus.NewMonitor(),
+		fromenv.PubSubProvider(n),
+		fromenv.Tracer(n),
 	)
 }

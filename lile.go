@@ -42,7 +42,8 @@ type Service struct {
 func NewService(name string, opts ...interface{}) *Service {
 	// Setup a Service with default configuration
 	s := &Service{
-		Tracer:     opentracing.NoopTracer{},
+		Name:       name,
+		Tracer:     opentracing.GlobalTracer(),
 		RPCOptions: rpc.DefaultRPCOptions(),
 	}
 
@@ -57,6 +58,8 @@ func NewService(name string, opts ...interface{}) *Service {
 			s.PubSubSubscriber = o
 		case pubsub.Provider:
 			s.PubSubProvider = o
+		case opentracing.Tracer:
+			s.Tracer = o
 		default:
 			fmt.Printf("o = %+v\n", o)
 			log.Fatalf("lile: NewService cannot accept option %T", opt)

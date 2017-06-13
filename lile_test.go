@@ -13,6 +13,7 @@ import (
 func TestBlankNewService(t *testing.T) {
 	s := lile.NewService("test_service")
 	assert.NotNil(t, s)
+	assert.Equal(t, s.Name, "test_service")
 }
 
 func TestRPCOptions(t *testing.T) {
