@@ -9,6 +9,5 @@ RUN go build -o build/{{.Name}} ./{{.Name}}
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
-COPY . /src/{{ .RelDir }}
-ADD build/{{.Name}} /bin
+COPY --from=build-env /usr/local/go/src/{{ .RelDir }}/build/{{.Name}} /bin/{{.Name}}
 CMD ["{{.Name}}", "up"]
