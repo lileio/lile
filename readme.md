@@ -2,6 +2,8 @@
 
 > **ALPHA:** Lile is currently considered "Alpha" in that things may change. Currently I am gathering feedback and will finalise Lile shortly to avoid breaking changes going foward.
 
+### [Guide](https://lileio.gitbooks.io/lile-user-guide/)
+
 Lile is a generator and set of tools/libraries to help you quickly create services  that communicate via [gRPC](grpc.io) (REST via a [gateway](https://github.com/grpc-ecosystem/grpc-gateway)) and publish subscribe.
 
 The primary focus of Lile is to remove the boilerplate when creating new services by creating a basic structure, test examples, Dockerfile, Makefile etc.
@@ -29,3 +31,6 @@ Lile is smart enough to evaluate `username/service` to a full `$GOPATH` director
 ```
 $ lile new lileio/users
 ```
+
+##### Credit
+Icons made by Freepik from www.flaticon.com, licensed by Creative Commons BY 3.0
