@@ -1,4 +1,4 @@
-# ![logo](/Users/alexb/Desktop/lile.png)
+# ![logo](https://raw.githubusercontent.com/lileio/lile/docs/lile.png)
 
 > **ALPHA:** Lile is currently considered "Alpha" in that things may change. Currently I am gathering feedback and will finalise Lile shortly to avoid breaking changes going foward.
 
