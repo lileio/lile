@@ -1,17 +1,31 @@
-# ![logo](https://cdn.rawgit.com/lileio/lile/aa45e6ae200692b4668bc6e370e1757e7753a514/logo.svg)
+# ![logo](/Users/alexb/Desktop/lile.png)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![Build Status](https://travis-ci.org/lileio/lile.svg?branch=master)](https://travis-ci.org/lileio/lile) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile)
+> **ALPHA:** Lile is currently considered "Alpha" in that things may change. Currently I am gathering feedback and will finalise Lile shortly to avoid breaking changes going foward.
 
-Lile is a app generator and utility library to help you build [gRPC](http://grpc.io) based services easily in Go with other languages hopefully coming soon. 
+Lile is a generator and set of tools/libraries to help you quickly create services  that communicate via [gRPC](grpc.io) (REST via a [gateway](https://github.com/grpc-ecosystem/grpc-gateway)) and publish subscribe.
 
-The Lile generator creates a ready to go service with features like a working test suite, Dockerfile, Makefile and a cmd line based app amongst others.
+The primary focus of Lile is to remove the boilerplate when creating new services by creating a basic structure, test examples, Dockerfile, Makefile etc.
 
-The utility library extends the basic gRPC server with nice defaults like metrics, tracing and logging.
+As well a simple service generator Lile extends the basic gRPC server to include pluggable options like metrics (e.g. [Prometheus](prometheus.io)), tracing (e.g. [Zipkin](zipkin.io)) and PubSub (e.g. [Google PubSub](https://cloud.google.com/pubsub/docs/overview)).
 
-A service built with Lile can easily remove Lile as a dependency as Lile is NOT a framework, just a set of helpers.
+[![Build Status](https://travis-ci.org/lileio/lile.svg?branch=master)](https://travis-ci.org/lileio/lile) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile) [![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
-# ![logo](https://dl.dropboxusercontent.com/u/7788162/lile.png)
+![](https://dl.dropboxusercontent.com/s/z91on1e6x2k9gvj/2017-06-15%2012.04.45.gif?dl=0)
 
-## Lileio
+### Installation
 
-More documentation will follow once the modular refactor is completed!
+Installing Lile is easy, using `go get` you can install the cmd line app to generate new services and the required libaries.
+
+```
+$ go get -u github.com/lileio/lile/lile
+```
+
+### Getting Started
+
+To generate a new service, run `lile new` with a short folder path. 
+
+Lile is smart enough to evaluate `username/service` to a full `$GOPATH` directory and defaults to `github.com`.
+
+```
+$ lile new lileio/users
+```
