@@ -22,19 +22,6 @@ func TestRPCOptions(t *testing.T) {
 	assert.Equal(t, s.RPCOptions.Port, ":9000")
 }
 
-func TestMonitor(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockMonitor := lile.NewMockMonitor(ctrl)
-	mockMonitor.EXPECT().InterceptRPC()
-	mockMonitor.EXPECT().Register(gomock.Any())
-
-	s := lile.NewService("test_service", mockMonitor)
-	assert.NotNil(t, s)
-	assert.NotNil(t, s.Monitor)
-}
-
 func TestPubSub(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
