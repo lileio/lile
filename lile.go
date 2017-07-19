@@ -22,9 +22,6 @@ import (
 type Service struct {
 	Name string
 
-	// Metrics gathering/exporting
-	Monitor Monitor
-
 	// Opentracing based tracer
 	Tracer opentracing.Tracer
 
@@ -52,8 +49,6 @@ func NewService(name string, opts ...interface{}) *Service {
 		switch o := opt.(type) {
 		case rpc.RPCOption:
 			o(&s.RPCOptions)
-		case Monitor:
-			s.Monitor = o
 		case pubsub.Subscriber:
 			s.PubSubSubscriber = o
 		case pubsub.Provider:
@@ -64,13 +59,6 @@ func NewService(name string, opts ...interface{}) *Service {
 			fmt.Printf("o = %+v\n", o)
 			log.Fatalf("lile: NewService cannot accept option %T", opt)
 		}
-	}
-
-	// Setup monitor's interceptors
-	if s.Monitor != nil {
-		unary, stream := s.Monitor.InterceptRPC()
-		rpc.AddUnaryInterceptor(unary)(&s.RPCOptions)
-		rpc.AddStreamInterceptor(stream)(&s.RPCOptions)
 	}
 
 	// Setup tracing
@@ -94,11 +82,6 @@ func NewService(name string, opts ...interface{}) *Service {
 
 	// Setup server
 	s.RPCServer = rpc.NewRPCServer(s.RPCOptions)
-
-	// Monitor registering
-	if s.Monitor != nil {
-		s.Monitor.Register(s)
-	}
 
 	return s
 }

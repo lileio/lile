@@ -23,9 +23,6 @@ func newProject(path, relativeName string) project {
 
 	f := folder{Name: name, AbsPath: path}
 
-	srv := f.addFolder("service")
-	srv.addFile("service.go", "service.tmpl")
-
 	s := f.addFolder("server")
 	s.addFile("server.go", "server.tmpl")
 	s.addFile("server_test.go", "server_test.tmpl")

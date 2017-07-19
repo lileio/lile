@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/lileio/lile/rpc/metrics"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -24,6 +25,9 @@ type RPCOptions struct {
 	// The RPC server implementation
 	GRPCImplementation registerImplementation
 
+	// RPC metrics exporter
+	Monitor metrics.Monitor
+
 	// Methods that automatically publish to lile's pubsub
 	// format being map[methodName]topic...
 	// map{"UpdateBooking": "bookings.updated"}
@@ -42,6 +46,13 @@ func DefaultRPCOptions() RPCOptions {
 func RPCPort(n string) RPCOption {
 	return func(o *RPCOptions) {
 		o.Port = n
+	}
+}
+
+// RPCPort sets the gRPC port of the service
+func RPCMonitor(n metrics.Monitor) RPCOption {
+	return func(o *RPCOptions) {
+		o.Monitor = n
 	}
 }
 
@@ -75,6 +86,13 @@ func AddPublishMethod(method, topic string) RPCOption {
 }
 
 func NewRPCServer(opts RPCOptions) *grpc.Server {
+	// Setup monitor's interceptors
+	if opts.Monitor != nil {
+		unary, stream := opts.Monitor.InterceptRPC()
+		AddUnaryInterceptor(unary)(&opts)
+		AddStreamInterceptor(stream)(&opts)
+	}
+
 	gs := grpc.NewServer(
 		// Interceptors
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(opts.UnaryInts...)),
@@ -82,6 +100,11 @@ func NewRPCServer(opts RPCOptions) *grpc.Server {
 	)
 
 	opts.GRPCImplementation(gs)
+
+	// Monitor registering
+	if opts.Monitor != nil {
+		opts.Monitor.Register(gs)
+	}
 
 	return gs
 }
