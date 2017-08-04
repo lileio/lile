@@ -2,13 +2,25 @@ package pubsub
 
 import (
 	"context"
+	"os"
+	"os/signal"
 	"reflect"
+	"syscall"
 	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
+
+func Subscribe(s Subscriber) {
+	logrus.Info("lile pubsub: Subscribed to events")
+	s.Setup(client)
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+}
 
 func (c Client) On(topic string, f Handler, deadline time.Duration, autoAck bool) {
 	if c.Provider == nil {

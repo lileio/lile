@@ -8,9 +8,15 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+var client = &Client{Provider: NoopProvider{}}
+
 // Client holds a reference to a Provider
 type Client struct {
 	Provider Provider
+}
+
+func SetClient(c *Client) {
+	client = c
 }
 
 // Provider is generic interface for a pub sub provider

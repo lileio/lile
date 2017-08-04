@@ -6,8 +6,8 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/lileio/lile"
 	"{{ .RelDir }}"
-	"github.com/lileio/lile/rpc"
 )
 
 var s = {{ .CamelCaseName }}Server{}
@@ -18,14 +18,13 @@ func TestMain(m *testing.M) {
 		{{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
 	}
 
-	ts := rpc.NewRPCServer(rpc.RPCOptions{
-		GRPCImplementation: impl,
-	})
+	gs := grpc.NewServer()
+	impl(gs)
 
-	addr, serve := rpc.NewTestServer(ts)
+	addr, serve := lile.NewTestServer(gs)
 	go serve()
 
-	cli = {{ .SnakeCaseName }}.New{{ .CamelCaseName }}Client(rpc.TestConn(addr))
+	cli = {{ .SnakeCaseName }}.New{{ .CamelCaseName }}Client(lile.TestConn(addr))
 
 	os.Exit(m.Run())
 }

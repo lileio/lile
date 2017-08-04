@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/lileio/lile"
+	"{{ .RelDir }}/subscribers"
 	"github.com/spf13/cobra"
 )
 
@@ -8,7 +10,7 @@ var subscribeCmd = &cobra.Command{
 	Use:   "subscribe",
 	Short: "Subscribe to and process queue messages",
 	Run: func(cmd *cobra.Command, args []string) {
-		{{ .CamelCaseName }}Service.Subscribe()
+		lile.Subscribe(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
 	},
 }
 

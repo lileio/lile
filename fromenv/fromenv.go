@@ -13,23 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func PubSubProvider(name string) pubsub.Provider {
-	gpid := os.Getenv("GOOGLE_PUBSUB_PROJECT_ID")
-	if gpid != "" {
-		gc, err := google.NewGoogleCloud(gpid, name)
-		if err != nil {
-			logrus.Fatalf("fronenv: Google Cloud pubsub err: %s", err)
-			return nil
-		}
-
-		logrus.Infof("Using Google Cloud pubsub: %s", gpid)
-		return gc
-	}
-
-	logrus.Warn("Using noop pubsub provider")
-	return pubsub.NoopProvider{}
-}
-
 func Tracer(name string) opentracing.Tracer {
 	var collector zipkin.Collector
 	var err error
@@ -48,6 +31,7 @@ func Tracer(name string) opentracing.Tracer {
 	}
 
 	if collector == nil {
+		logrus.Infof("Using Zipkin Global tracer")
 		return opentracing.GlobalTracer()
 	}
 
@@ -68,4 +52,21 @@ func Tracer(name string) opentracing.Tracer {
 	opentracing.InitGlobalTracer(tracer)
 
 	return tracer
+}
+
+func PubSubProvider(name string) pubsub.Provider {
+	gpid := os.Getenv("GOOGLE_PUBSUB_PROJECT_ID")
+	if gpid != "" {
+		gc, err := google.NewGoogleCloud(gpid, name)
+		if err != nil {
+			logrus.Fatalf("fronenv: Google Cloud pubsub err: %s", err)
+			return nil
+		}
+
+		logrus.Infof("Using Google Cloud pubsub: %s", gpid)
+		return gc
+	}
+
+	logrus.Warn("Using noop pubsub provider")
+	return pubsub.NoopProvider{}
 }

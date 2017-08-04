@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/lileio/lile"
 	"github.com/spf13/cobra"
+	"{{ .RelDir }}/subscribers"
 )
 
 var upCmd = &cobra.Command{
@@ -10,11 +12,11 @@ var upCmd = &cobra.Command{
 	Short: "up runs both RPC and pubub subscribers",
 	Run: func(cmd *cobra.Command, args []string) {
 		go func() {
-			logrus.Fatal({{ .CamelCaseName }}Service.ServeRPCInsecure())
+			logrus.Fatal(lile.Serve())
 
 		}()
 
-		{{ .CamelCaseName }}Service.Subscribe()
+		lile.Subscribe(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
 	},
 }
 
