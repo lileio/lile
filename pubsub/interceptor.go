@@ -3,7 +3,7 @@ package pubsub
 import (
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/sirupsen/logrus"
 
 	"golang.org/x/net/context"

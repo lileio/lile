@@ -2,6 +2,7 @@
 .PHONY: proto test get ci docker
 
 proto:
+	go get github.com/golang/protobuf/protoc-gen-go
 	protoc -I . {{.Name}}.proto --lile-server_out=. --go_out=plugins=grpc:$$GOPATH/src
 
 test:
