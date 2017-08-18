@@ -19,7 +19,7 @@ As well a simple service generator Lile extends the basic gRPC server to include
 Installing Lile is easy, using `go get` you can install the cmd line app to generate new services and the required libaries.
 
 ```
-$ go get -u github.com/lileio/lile/lile
+$ go get -u github.com/lileio/lile/...
 ```
 
 ### Getting Started

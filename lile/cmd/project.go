@@ -55,7 +55,7 @@ func newProject(path, relativeName string) project {
 }
 
 func (p project) write(templatePath string) error {
-	err := os.Mkdir(p.ProjectDir, os.ModePerm)
+	err := os.MkdirAll(p.ProjectDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
