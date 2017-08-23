@@ -36,11 +36,21 @@ $ lile new lileio/users
 
 # Guide
 
-## Creating a Service
+- [Installation](#installation)
+- [Creating a Service](#creating-a-service)
+- [Service Definition](#service-definitions)
+- [Generating RPC Methods](#generating-rpc-methods)
+- [Running and Writing Tests](#running--writing-tests)
+- [Using the Generated cmds](#using-the-generated-cmds)
+- [Adding your own cmds](#adding-your-own-cmds)
+- [Exposing Prometheus Metrics](#exposing--collecting-prometheus-metrics)
+- [Publish & Subscribe](#publish--subscribe)
+- [Publishing an Event](#publishing-an-event)
+- [Automatically Publishing Events](#automatically-publishing-events)
+- [Subscribing to Events](#subscribing-to-events)
+- [Tracing](#tracing)
 
-Lile comes with a 'generator' to quickly generate new Lile services.
-
-### Installation
+## Installation
 
 First, you need to have a working Go installation, once you have Go installed you can then install Lile.
 
@@ -50,9 +60,13 @@ Installing Lile is easy, using `go get` you can install the cmd line app to gene
 $ go get github.com/lileio/lile/...
 ```
 
-Then you can create your first Lile service.
+You will also need Google's [Protocol Buffers](https://developers.google.com/protocol-buffers/) installed.
 
-### Creating a New Service
+On MacOS you can simply `brew install protobuf`
+
+## Creating a Service
+
+Lile comes with a 'generator' to quickly generate new Lile services.
 
 Lile follows Go's conventions around `$GOPATH` (see [How to Write Go](https://golang.org/doc/code.html#Workspaces)) and is smart enough to parse your new service's name to create the service in the right place.
 
@@ -64,8 +78,6 @@ lile new lileio/slack
 
 This will create a project in `$GOPATH/src/github.com/lileio/slack`
 
-See [Service Structure](/service-structure.md) for how your new Lile service is structured
-
 ## Service Definitions
 
 Lile services mainly speak gRPC and therefor use uses [protocol buffers](https://developers.google.com/protocol-buffers/) as the Interface Definition Language (IDL) for describing both the service interface and the structure of the payload messages. It is possible to use other alternatives if desired.
@@ -73,7 +85,6 @@ Lile services mainly speak gRPC and therefor use uses [protocol buffers](https:/
 I highly recommend reading the [Google API Design](https://cloud.google.com/apis/design/) docs for good advice around general naming of RPC methods and messages and how they might translate to REST/JSON if needed.
 
 An example of a service definition can be found in the Lile [`account_service`](https://github.com/lileio/account_service)
-
 
 ``` protobuf
 service AccountService {
@@ -175,9 +186,11 @@ func (s SlackServer) Announce(ctx context.Context, r *slack.AnnounceRequest) (*e
 }
 ```
 
+We can now fill in this generated method with the correct implementation. But let's start with a test!
+
 ## Running & Writing Tests
 
-When you [generate an RPC method](/generating-rpc-methods.md) with Lile a counterpart test file is also created. For example, given our `announce.go` file, Lile will create `announce_test.go` in the same directory.
+When you generate an RPC method with Lile a counterpart test file is also created. For example, given our `announce.go` file, Lile will create `announce_test.go` in the same directory.
 
 This should look something like the following..
 
@@ -294,9 +307,7 @@ ok      github.com/lileio/slack/server  0.331s  coverage: 75.0% of statements
 
 Lile generates a cmd line application when you generate your service. You can extend the app with your own cmds or use the build in cmds to run the service.
 
-## Generated cmds
-
-Run the cmd without any argument will print the generated help.
+Runing the cmd line app without any arguments will print the generated help.
 
 For example `go run orders/main.go`
 
