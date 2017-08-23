@@ -10,9 +10,11 @@ The primary focus of Lile is to remove the boilerplate when creating new service
 
 As well a simple service generator Lile extends the basic gRPC server to include pluggable options like metrics (e.g. [Prometheus](prometheus.io)), tracing (e.g. [Zipkin](zipkin.io)) and PubSub (e.g. [Google PubSub](https://cloud.google.com/pubsub/docs/overview)).
 
+Chat to me on Slack on the [Gopher Slack](https://invite.slack.golangbridge.org/) channel [#lile](https://gophers.slack.com/messages/C6RHLV3LN)
+
 [![Build Status](https://travis-ci.org/lileio/lile.svg?branch=master)](https://travis-ci.org/lileio/lile) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile) [![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
-![](https://dl.dropboxusercontent.com/s/z91on1e6x2k9gvj/2017-06-15%2012.04.45.gif?dl=0)
+[![asciicast](https://asciinema.org/a/rLAGV6nsdBreyWgXtb6bgL3Hb.png)](https://asciinema.org/a/rLAGV6nsdBreyWgXtb6bgL3Hb)
 
 ### Installation
 
