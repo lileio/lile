@@ -106,11 +106,28 @@ func createServer() *grpc.Server {
 	return gs
 }
 
+var clientSet = false
+
+func setPubSubClient() {
+	if !clientSet {
+		pubsub.SetClient(&pubsub.Client{
+			Provider: fromenv.PubSubProvider(service.Name),
+		})
+		clientSet = true
+	}
+}
+
 func Subscribe(s pubsub.Subscriber) {
-	pubsub.SetClient(&pubsub.Client{
-		Provider: fromenv.PubSubProvider(service.Name),
-	})
+	setPubSubClient()
 	pubsub.Subscribe(s)
+}
+
+func AddPubSubInterceptor(methodMap map[string]string) {
+	setPubSubClient()
+	AddUnaryInterceptor(pubsub.UnaryServerInterceptor(
+		pubsub.GlobalClient(),
+		methodMap,
+	))
 }
 
 // NewTestServer is a helper function to create a gRPC server on a unix socket

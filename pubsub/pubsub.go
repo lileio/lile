@@ -19,10 +19,18 @@ func SetClient(c *Client) {
 	client = c
 }
 
+func GlobalClient() *Client {
+	return client
+}
+
 // Provider is generic interface for a pub sub provider
 type Provider interface {
 	Publish(ctx context.Context, topic string, msg proto.Message) error
 	Subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool)
+}
+
+func Publish(ctx context.Context, topic string, msg proto.Message) error {
+	return client.Provider.Publish(ctx, topic, msg)
 }
 
 // Subscriber is a service/service that listens to events and registers handlers
