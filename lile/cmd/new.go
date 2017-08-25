@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/mattn/go-colorable"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,8 @@ var newCmd = &cobra.Command{
 }
 
 var templatePath = os.Getenv("GOPATH") + "/src/github.com/lileio/lile/template"
+
+var out = colorable.NewColorableStdout()
 
 func init() {
 	RootCmd.AddCommand(newCmd)
@@ -52,7 +55,7 @@ func askIsOK() bool {
 		return true
 	}
 
-	fmt.Printf("Is this OK? %ses/%so\n",
+	fmt.Fprintf(out, "Is this OK? %ses/%so\n",
 		color.YellowString("[y]"),
 		color.CyanString("[n]"),
 	)
@@ -63,7 +66,7 @@ func askIsOK() bool {
 
 func er(err error) {
 	if err != nil {
-		fmt.Printf("%s: %s \n",
+		fmt.Fprintf(out, "%s: %s \n",
 			color.RedString("[ERROR]"),
 			err.Error(),
 		)

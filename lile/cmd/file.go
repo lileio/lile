@@ -60,16 +60,19 @@ func (f *folder) render(templatePath string, p project) error {
 			var out bytes.Buffer
 			err = t.Execute(&out, p)
 			if err != nil {
+				file.Close()
 				return err
 			}
 
 			b, err := format.Source(out.Bytes())
 			if err != nil {
+				file.Close()
 				return err
 			}
 
 			_, err = file.Write(b)
 			if err != nil {
+				file.Close()
 				return err
 			}
 
@@ -80,8 +83,10 @@ func (f *folder) render(templatePath string, p project) error {
 		} else {
 			err = t.Execute(file, p)
 			if err != nil {
+				file.Close()
 				return err
 			}
+			file.Close()
 		}
 	}
 

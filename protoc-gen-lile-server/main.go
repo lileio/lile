@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"text/template"
@@ -63,7 +64,9 @@ func gen(i io.Reader, o io.Writer) {
 	output = o
 
 	// Force color output
-	color.NoColor = false
+	if runtime.GOOS != "windows" {
+		color.NoColor = false
+	}
 
 	// Parse the incoming protobuf request
 	req, err := parseReq(input)
