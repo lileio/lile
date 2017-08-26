@@ -329,7 +329,7 @@ $ cd orders
 $ cobra add import
 ```
 
-You can not edit the file generated to create your cmd, `cobra` will automatically add the cmd to the help. 
+You can now edit the file generated to create your cmd, `cobra` will automatically add the cmd's name to the help. 
 
 ## Exposing & Collecting Prometheus Metrics
 
