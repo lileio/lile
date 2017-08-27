@@ -80,7 +80,7 @@ This will create a project in `$GOPATH/src/github.com/lileio/slack`
 
 ## Service Definitions
 
-Lile services mainly speak gRPC and therefor use uses [protocol buffers](https://developers.google.com/protocol-buffers/) as the Interface Definition Language (IDL) for describing both the service interface and the structure of the payload messages. It is possible to use other alternatives if desired.
+Lile services mainly speak gRPC and therefore uses [protocol buffers](https://developers.google.com/protocol-buffers/) as the Interface Definition Language (IDL) for describing both the service interface and the structure of the payload messages. It is possible to use other alternatives if desired.
 
 I highly recommend reading the [Google API Design](https://cloud.google.com/apis/design/) docs for good advice around general naming of RPC methods and messages and how they might translate to REST/JSON if needed.
 
@@ -103,7 +103,7 @@ service AccountService {
 
 ## Generating RPC Methods
 
-By default Lile will create a example RPC method and a simple messages for request and response.
+By default Lile will create a example RPC method and a simple message for request and response.
 
 ``` protobuf
 syntax = "proto3";
@@ -129,7 +129,7 @@ We're going to create an `Announce` method that will announce a message to a Sla
 
 We're assuming that the Slack team and authentication is already handled by the services configuration, so a user of our service only needs to provide a `room` and their `message`. The service is going to send the special `Empty` response, since we only need to know if an error occurred and don't need to know anything else.
 
-Our `proto` file now looks like this..
+Our `proto` file now looks like this...
 
 ``` protobuf
 syntax = "proto3";
@@ -262,7 +262,7 @@ func (s SlackServer) Announce(ctx context.Context, r *slack.AnnounceRequest) (*e
 }
 ```
 
-Let's fill out our testing request and then run our tests again..
+Let's fill out our testing request and then run our tests again...
 
 ``` go
 package server
@@ -305,9 +305,9 @@ ok      github.com/lileio/slack/server  0.331s  coverage: 75.0% of statements
 
 ## Using the Generated cmds
 
-Lile generates a cmd line application when you generate your service. You can extend the app with your own cmds or use the build in cmds to run the service.
+Lile generates a cmd line application when you generate your service. You can extend the app with your own cmds or use the built-in cmds to run the service.
 
-Runing the cmd line app without any arguments will print the generated help.
+Running the cmd line app without any arguments will print the generated help.
 
 For example `go run orders/main.go`
 
@@ -341,7 +341,7 @@ If your service is running, you can use cURL to preview the Prometheus metrics
 $ curl :9000/metrics
 ```
 
-You should see something along the lines of..
+You should see something along the lines of...
 
 ```
 # HELP go_gc_duration_seconds A summary of the GC invocation durations.
