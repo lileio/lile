@@ -56,37 +56,29 @@ func (f *folder) render(templatePath string, p project) error {
 			return err
 		}
 
+		defer file.Close()
+
 		if strings.Contains(v.AbsPath, ".go") {
 			var out bytes.Buffer
 			err = t.Execute(&out, p)
 			if err != nil {
-				file.Close()
 				return err
 			}
 
 			b, err := format.Source(out.Bytes())
 			if err != nil {
-				file.Close()
 				return err
 			}
 
 			_, err = file.Write(b)
-			if err != nil {
-				file.Close()
-				return err
-			}
-
-			err = file.Close()
 			if err != nil {
 				return err
 			}
 		} else {
 			err = t.Execute(file, p)
 			if err != nil {
-				file.Close()
 				return err
 			}
-			file.Close()
 		}
 	}
 
