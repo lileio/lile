@@ -312,7 +312,7 @@ Running the cmd line app without any arguments will print the generated help.
 For example `go run orders/main.go`
 
 ### serve
-Running `up` will run the RPC server.
+Running `serve` will run the RPC server.
 
 ### subscribe
 Running `subscribe` will listen to pubsub events with your subscribers.
