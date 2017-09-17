@@ -5,6 +5,7 @@ package lile
 import (
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
@@ -101,7 +102,11 @@ func createServer() *grpc.Server {
 	grpc_prometheus.Register(gs)
 	http.Handle("/metrics", prometheus.Handler())
 	logrus.Infof("Prometheus metrics at :9000/metrics")
-	go http.ListenAndServe(":9000", nil)
+	port := "9000"
+	if p := os.Getenv("PROMETHEUS_PORT"); p != "" {
+		port = p
+	}
+	go http.ListenAndServe(":"+port, nil)
 
 	return gs
 }
