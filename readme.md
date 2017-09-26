@@ -333,7 +333,7 @@ You can now edit the file generated to create your cmd, `cobra` will automatical
 
 ## Exposing & Collecting Prometheus Metrics
 
-By default Lile collects [Prometheus](prometheus.io) metrics and exposes them at `:9000/metrics`.
+By default Lile collects [Prometheus](prometheus.io) metrics and exposes them at `:9000/metrics`. You can set a custom port by setting the env `PROMETHEUS_PORT`.  
 
 If your service is running, you can use cURL to preview the Prometheus metrics
 
