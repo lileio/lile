@@ -130,7 +130,11 @@ func projectPath(inputPath string) string {
 }
 
 func projectBase(absPath string) string {
-	return lastFromSplit(filepath.ToSlash(absPath), filepath.ToSlash(srcPath()))
+	rel, err := filepath.Rel(srcPath(), absPath)
+	if err != nil {
+		return filepath.ToSlash(absPath)
+	}
+	return filepath.ToSlash(rel)
 }
 
 func lastFromSplit(input, split string) string {
