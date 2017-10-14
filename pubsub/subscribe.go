@@ -99,16 +99,20 @@ func (c Client) On(topic, subscriberName string, f Handler, deadline time.Durati
 			oV = []reflect.Value{reflect.ValueOf(c), reflect.ValueOf(m.Metadata), obj}
 		}
 
-		errInterface := handler.Call(oV)[0].Interface()
+		returnVal := handler.Call(oV)
+		if len(returnVal) == 0 {
+			return nil
+		}
+
+		errInterface := returnVal[0].Interface()
 
 		pubsubHandled.WithLabelValues(topic, subscriberName, strconv.FormatBool(errInterface == nil)).Inc()
 		subscriberSize.WithLabelValues(topic, subscriberName).Add(float64(len(m.Data)))
-
 		if errInterface == nil {
 			return nil
-		} else {
-			return errInterface.(error)
 		}
+
+		return errInterface.(error)
 	}
 
 	c.Provider.Subscribe(topic, subscriberName, cb, deadline, autoAck)
