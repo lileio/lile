@@ -17,16 +17,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var mutex = &sync.Mutex{}
-var pubsubTag = opentracing.Tag{string(ext.Component), "pubsub"}
+var (
+	mutex     = &sync.Mutex{}
+	pubsubTag = opentracing.Tag{string(ext.Component), "pubsub"}
+)
 
 type GoogleCloud struct {
-	subName string
-	client  *pubsub.Client
-	topics  map[string]*pubsub.Topic
+	client *pubsub.Client
+	topics map[string]*pubsub.Topic
 }
 
-func NewGoogleCloud(project_id string, subName string) (*GoogleCloud, error) {
+func NewGoogleCloud(project_id string) (*GoogleCloud, error) {
 	ctx := ctxNet.Background()
 	c, err := pubsub.NewClient(ctx, project_id)
 	if err != nil {
@@ -34,9 +35,8 @@ func NewGoogleCloud(project_id string, subName string) (*GoogleCloud, error) {
 	}
 
 	return &GoogleCloud{
-		subName: subName,
-		client:  c,
-		topics:  map[string]*pubsub.Topic{},
+		client: c,
+		topics: map[string]*pubsub.Topic{},
 	}, nil
 }
 
@@ -87,11 +87,11 @@ func (g *GoogleCloud) Publish(ctx context.Context, topic string, msg proto.Messa
 	return err
 }
 
-func (g *GoogleCloud) Subscribe(topic string, h ps.MsgHandler, deadline time.Duration, autoAck bool) {
-	g.subscribe(topic, h, deadline, autoAck, make(chan bool, 1))
+func (g *GoogleCloud) Subscribe(topic, subscriberName string, h ps.MsgHandler, deadline time.Duration, autoAck bool) {
+	g.subscribe(topic, subscriberName, h, deadline, autoAck, make(chan bool, 1))
 }
 
-func (g *GoogleCloud) subscribe(topic string, h ps.MsgHandler, deadline time.Duration, autoAck bool, ready chan<- bool) {
+func (g *GoogleCloud) subscribe(topic, subscriberName string, h ps.MsgHandler, deadline time.Duration, autoAck bool, ready chan<- bool) {
 	go func() {
 		var sub *pubsub.Subscription
 		var err error
@@ -103,7 +103,7 @@ func (g *GoogleCloud) subscribe(topic string, h ps.MsgHandler, deadline time.Dur
 		// Subscribe with backoff for failure (i.e topic doesn't exist yet)
 		for {
 			t := g.client.Topic(topic)
-			subName := g.subName + "--" + topic
+			subName := subscriberName + "--" + topic
 			sc := pubsub.SubscriptionConfig{
 				Topic:       t,
 				AckDeadline: deadline,
@@ -138,7 +138,7 @@ func (g *GoogleCloud) subscribe(topic string, h ps.MsgHandler, deadline time.Dur
 				}
 
 				handlerSpan := tracer.StartSpan(
-					g.subName,
+					subscriberName,
 					consumerOption{clientContext: spanContext},
 					pubsubTag,
 				)

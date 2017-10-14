@@ -6,13 +6,34 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var client = &Client{Provider: NoopProvider{}}
 
+var (
+	publishedCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pubsub_message_published_total",
+			Help: "Total number of messages published by the client.",
+		}, []string{"topic", "service"})
+
+	publishedSize = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pubsub_outgoing_bytes",
+			Help: "A counter of pubsub published outgoing bytes.",
+		}, []string{"topic", "service"})
+)
+
+func init() {
+	prometheus.MustRegister(publishedCounter)
+	prometheus.MustRegister(publishedSize)
+}
+
 // Client holds a reference to a Provider
 type Client struct {
-	Provider Provider
+	ServiceName string
+	Provider    Provider
 }
 
 func SetClient(c *Client) {
@@ -26,11 +47,18 @@ func GlobalClient() *Client {
 // Provider is generic interface for a pub sub provider
 type Provider interface {
 	Publish(ctx context.Context, topic string, msg proto.Message) error
-	Subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool)
+	Subscribe(topic, subscriberName string, h MsgHandler, deadline time.Duration, autoAck bool)
 }
 
 func Publish(ctx context.Context, topic string, msg proto.Message) error {
-	return client.Provider.Publish(ctx, topic, msg)
+	err := client.Provider.Publish(ctx, topic, msg)
+	if err != nil {
+		return err
+	}
+
+	publishedCounter.WithLabelValues(topic, client.ServiceName).Inc()
+	publishedSize.WithLabelValues(topic, client.ServiceName).Add(float64(len([]byte(msg.String()))))
+	return nil
 }
 
 // Subscriber is a service/service that listens to events and registers handlers
@@ -82,6 +110,6 @@ func (np NoopProvider) Publish(ctx context.Context, topic string, msg proto.Mess
 	return nil
 }
 
-func (np NoopProvider) Subscribe(topic string, h MsgHandler, deadline time.Duration, autoAck bool) {
+func (np NoopProvider) Subscribe(topic, subscriberName string, h MsgHandler, deadline time.Duration, autoAck bool) {
 	return
 }

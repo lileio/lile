@@ -9,5 +9,5 @@ type {{ .CamelCaseName }}ServiceSubscriber struct {}
 
 func (s *{{ .CamelCaseName }}ServiceSubscriber) Setup(c *pubsub.Client) {
 	// // https://godoc.org/github.com/lileio/lile/pubsub#Client.On
-	// c.On("service.event_name", s.CallbackMethod, 30*time.Second, true)
+	// c.On("service.event_name", "subscriber_name", s.CallbackMethod, 30*time.Second, true)
 }

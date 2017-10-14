@@ -54,10 +54,10 @@ func Tracer(name string) opentracing.Tracer {
 	return tracer
 }
 
-func PubSubProvider(name string) pubsub.Provider {
+func PubSubProvider() pubsub.Provider {
 	gpid := os.Getenv("GOOGLE_PUBSUB_PROJECT_ID")
 	if gpid != "" {
-		gc, err := google.NewGoogleCloud(gpid, name)
+		gc, err := google.NewGoogleCloud(gpid)
 		if err != nil {
 			logrus.Fatalf("fronenv: Google Cloud pubsub err: %s", err)
 			return nil

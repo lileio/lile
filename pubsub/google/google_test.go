@@ -33,7 +33,7 @@ func TestGooglePublishSubscribe(t *testing.T) {
 	}
 
 	sub := "lile_" + uuid.NewV1().String()
-	ps, err := NewGoogleCloud(os.Getenv("GOOGLE_PUBSUB_PROJECT_ID"), sub)
+	ps, err := NewGoogleCloud(os.Getenv("GOOGLE_PUBSUB_PROJECT_ID"))
 	assert.Nil(t, err)
 	assert.NotNil(t, ps)
 
@@ -44,7 +44,7 @@ func TestGooglePublishSubscribe(t *testing.T) {
 	assert.Nil(t, err)
 
 	a := test.Account{Name: "Alex"}
-	ps.subscribe(topic, func(ctx context.Context, m pubsub.Msg) error {
+	ps.subscribe(topic, sub, func(ctx context.Context, m pubsub.Msg) error {
 		assert.NotNil(t, opentracing.SpanFromContext(ctx))
 
 		var ac test.Account

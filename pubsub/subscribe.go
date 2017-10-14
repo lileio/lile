@@ -5,13 +5,34 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
+
+var (
+	pubsubHandled = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pubsub_server_handled_total",
+			Help: "Total number of PubSubs handled on the server, regardless of success or failure.",
+		}, []string{"topic", "service", "success"})
+
+	subscriberSize = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pubsub_incoming_bytes",
+			Help: "A counter of pubsub subscribers incoming bytes.",
+		}, []string{"topic", "service"})
+)
+
+func init() {
+	prometheus.MustRegister(pubsubHandled)
+	prometheus.MustRegister(subscriberSize)
+}
 
 func Subscribe(s Subscriber) {
 	logrus.Info("lile pubsub: Subscribed to events")
@@ -22,7 +43,7 @@ func Subscribe(s Subscriber) {
 	<-sigs
 }
 
-func (c Client) On(topic string, f Handler, deadline time.Duration, autoAck bool) {
+func (c Client) On(topic, subscriberName string, f Handler, deadline time.Duration, autoAck bool) {
 	if c.Provider == nil {
 		logrus.Warnf("lile pubsub: can't register handler for topic %s, nil provider", topic)
 		return
@@ -46,7 +67,7 @@ func (c Client) On(topic string, f Handler, deadline time.Duration, autoAck bool
 	wantsRaw := (argType == rawMsgFunctionType)
 
 	if wantsRaw {
-		c.Provider.Subscribe(topic, f.(MsgHandler), deadline, autoAck)
+		c.Provider.Subscribe(topic, subscriberName, f.(MsgHandler), deadline, autoAck)
 		return
 	}
 
@@ -79,6 +100,10 @@ func (c Client) On(topic string, f Handler, deadline time.Duration, autoAck bool
 		}
 
 		errInterface := handler.Call(oV)[0].Interface()
+
+		pubsubHandled.WithLabelValues(topic, subscriberName, strconv.FormatBool(errInterface == nil)).Inc()
+		subscriberSize.WithLabelValues(topic, subscriberName).Add(float64(len(m.Data)))
+
 		if errInterface == nil {
 			return nil
 		} else {
@@ -86,7 +111,7 @@ func (c Client) On(topic string, f Handler, deadline time.Duration, autoAck bool
 		}
 	}
 
-	c.Provider.Subscribe(topic, cb, deadline, autoAck)
+	c.Provider.Subscribe(topic, subscriberName, cb, deadline, autoAck)
 }
 
 // Dissect the handler's signature

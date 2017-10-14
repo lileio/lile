@@ -116,7 +116,8 @@ var clientSet = false
 func setPubSubClient() {
 	if !clientSet {
 		pubsub.SetClient(&pubsub.Client{
-			Provider: fromenv.PubSubProvider(service.Name),
+			ServiceName: service.Name,
+			Provider:    fromenv.PubSubProvider(),
 		})
 		clientSet = true
 	}

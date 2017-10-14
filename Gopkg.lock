@@ -158,16 +158,16 @@
   revision = "a52f2342449246d5bcc273e65cbdcfa5f7d6c63c"
 
 [[projects]]
+  branch = "master"
   name = "github.com/opentracing/opentracing-go"
   packages = [".","ext","log"]
-  revision = "1949ddbfd147afd4d964a9f00b24eb291e0e7c38"
-  version = "v1.0.2"
+  revision = "8ebe5d4e236eed9fd88e593c288bfb804d630b8c"
 
 [[projects]]
+  branch = "master"
   name = "github.com/openzipkin/zipkin-go-opentracing"
   packages = [".","flag","thrift/gen-go/scribe","thrift/gen-go/zipkincore","types","wire"]
-  revision = "a3f24586d6771f7a52012fc17b05a3f781592173"
-  version = "v0.3.0"
+  revision = "37e942825de0f846d15acc3bc9d027c9134a9b25"
 
 [[projects]]
   name = "github.com/pierrec/lz4"
@@ -334,6 +334,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bb47f8402f680fa047080e9e90e1ad93f18dd788cfb156bdb85ea6ddc4584d13"
+  inputs-digest = "1aee0ca10f27436fc20aa4105d448b036c5239373d0a4a40088f5940811f2e1f"
   solver-name = "gps-cdcl"
   solver-version = 1

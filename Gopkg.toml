@@ -63,11 +63,15 @@
 
 [[constraint]]
   name = "github.com/opentracing/opentracing-go"
-  version = "1.0.2"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/openzipkin/zipkin-go-opentracing"
-  version = "0.3.0"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/apache/thrift"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/pkg/errors"
