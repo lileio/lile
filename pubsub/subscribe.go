@@ -78,12 +78,17 @@ func (c Client) On(topic string, f Handler, deadline time.Duration, autoAck bool
 			oV = []reflect.Value{reflect.ValueOf(c), reflect.ValueOf(m.Metadata), obj}
 		}
 
-		errInterface := handler.Call(oV)[0].Interface()
+		returnVal := handler.Call(oV)
+		if len(returnVal) == 0 {
+			return nil
+		}
+
+		errInterface := returnVal[0].Interface()
 		if errInterface == nil {
 			return nil
-		} else {
-			return errInterface.(error)
 		}
+
+		return errInterface.(error)
 	}
 
 	c.Provider.Subscribe(topic, cb, deadline, autoAck)
