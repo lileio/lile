@@ -241,8 +241,8 @@ Let's implement the `Announce` method in `announce.go`, here's an example using 
 package server
 
 import (
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/lileio/slack"
@@ -255,7 +255,7 @@ var api = sl.New(os.Getenv("SLACK_TOKEN"))
 func (s SlackServer) Announce(ctx context.Context, r *slack.AnnounceRequest) (*empty.Empty, error) {
 	_, _, err := api.PostMessage(r.Channel, r.Msg, sl.PostMessageParameters{})
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	return &empty.Empty{}, nil
