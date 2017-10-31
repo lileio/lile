@@ -25,9 +25,8 @@ type registerImplementation func(s *grpc.Server)
 
 // Service is a grpc compatible server with extra features
 type Service struct {
-	Name      string
-	Port      string
-	RPCServer *grpc.Server
+	Name string
+	Port string
 	// Interceptors
 	UnaryInts  []grpc.UnaryServerInterceptor
 	StreamInts []grpc.StreamServerInterceptor
@@ -81,10 +80,10 @@ func Serve() error {
 	}
 
 	logrus.Infof("Serving gRPC on %s", service.Port)
-	return createServer().Serve(lis)
+	return CreateServer().Serve(lis)
 }
 
-func createServer() *grpc.Server {
+func CreateServer() *grpc.Server {
 	AddUnaryInterceptor(grpc_prometheus.UnaryServerInterceptor)
 	AddStreamInterceptor(grpc_prometheus.StreamServerInterceptor)
 	AddUnaryInterceptor(otgrpc.OpenTracingServerInterceptor(
