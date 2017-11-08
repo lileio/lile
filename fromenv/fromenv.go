@@ -41,7 +41,7 @@ func Tracer(name string) opentracing.Tracer {
 	// create tracer.
 	tracer, err := zipkin.NewTracer(
 		recorder,
-		zipkin.ClientServerSameSpan(false),
+		zipkin.ClientServerSameSpan(true),
 	)
 	if err != nil {
 		logrus.Fatalf("unable to create Zipkin tracer: %+v", err)
