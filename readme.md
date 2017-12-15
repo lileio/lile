@@ -372,15 +372,17 @@ And see [useful query examples](https://github.com/grpc-ecosystem/go-grpc-promet
 
 ## Publish & Subscribe
 
-Whilst most services will communicate predominantly via RPC, Lile provides a [library](https://github.com/lileio/lile/tree/master/pubsub) for doing [Publish & Subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) (or Pub Sub) communication.
+Whilst most services will communicate predominantly via RPC, Lile provides a [library](https://github.com/lileio/pubsub) for doing [Publish & Subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) (or Pub Sub) communication.
 
 This is particularly helpful when developing a service that needs to be updated or do some work when another service has performed an action, but you don't want to hold up the request.
 
-Publishers are loosely coupled to subscribers, and need not even know of their existence. Most [Lile services](https://github.com/lileio) will already provide events you can hook into, but you can easily add events to your own service. You can either manually publish events or use the gRPC [middleware](https://github.com/lileio/lile/blob/master/pubsub/interceptor.go) to automatically publish an event when a RPC method is called.
+Publishers are loosely coupled to subscribers, and need not even know of their existence. Most [Lile services](https://github.com/lileio) will already provide events you can hook into, but you can easily add events to your own service. 
 
 Lile's Pub Sub is based on "at least once" delivery of message **per subscriber**. In other words, given an `account_service` (publisher) that publishes the event `account_created`, if multiple instances of an `email_service` (subscriber) and `fraud_detection_service` (subscriber) are running, only one instance of each `email_service` and `fraud_detection_service` will each receive a message.
 
 ## Publishing an Event
+
+(PubSub has moved to it's own package located at https://github.com/lileio/pubsub)
 
 If Lile pubsub is configured (which happens via env vars automatically or manually) then only a simple call to `Publish` is required.
 
@@ -406,24 +408,13 @@ func (s OrdersServer) Get(ctx context.Context, r *orders.GetRequest) (*orders.Ge
 
 ## Automatically Publishing Events
 
-You can automatically publish events when a gRPC method is called using lile's gRPC [middleware](https://github.com/lileio/lile/blob/master/pubsub/interceptor.go).
-
-In our `main.go` we can add the pubsub interceptor, mapping our gRPC methods to our pubsub topics.
-
-The interceptor will automatically publish the gRPC response to that topic, or nothing on error.
-
-``` go
-lile.AddPubSubInterceptor(map[string]string{
-	"Create": "account_service.created",
-	"Update": "account_service.updated",
-})
-```
+Automatically publishing events has been removed, due to their misuse in general and confusion. Now you should manually publish events.
 
 ## Subscribing to Events
 
 Lile generates projects by default with a `subscribers.go` file with some basic setup to subscribe to events.
 
-Subscribers conform to the [`lile.Subscriber`](https://godoc.org/github.com/lileio/lile/pubsub#Subscriber) interface which has a special `Setup` event for subscribing to events from any topic.
+Subscribers conform to the [`lile.Subscriber`](https://godoc.org/github.com/lileio/pubsub#Subscriber) interface which has a special `Setup` event for subscribing to events from any topic.
 
 ```go
 type OrdersServiceSubscriber struct{}
@@ -437,7 +428,7 @@ func (s *OrdersServiceSubscriber) ShipmentUpdate(sh *shipments.Shipment) {
 }
 ```
 
-Functions that listen to topics can take anything that conforms to pubsub's [Handler interface](https://godoc.org/github.com/lileio/lile/pubsub#Handler)
+Functions that listen to topics can take anything that conforms to pubsub's [Handler interface](https://godoc.org/github.com/lileio/pubsub#Handler)
 
 Protobuf messages are automatically decoded.
 
