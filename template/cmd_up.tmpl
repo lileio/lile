@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/lileio/lile"
+	"github.com/lileio/pubsub"
 	"github.com/spf13/cobra"
 	"{{ .RelDir }}/subscribers"
 )
@@ -16,7 +17,7 @@ var upCmd = &cobra.Command{
 
 		}()
 
-		lile.Subscribe(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
+		pubsub.Subscribe(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
 	},
 }
 

@@ -4,8 +4,8 @@
 [[projects]]
   name = "cloud.google.com/go"
   packages = ["compute/metadata","iam","internal/version","pubsub","pubsub/apiv1"]
-  revision = "0f0b8420cb699ac4ce059c63bac263f4301fe95b"
-  version = "v0.12.0"
+  revision = "050b16d2314d5fc3d4c9a51e4cd5c7468e77f162"
+  version = "v0.17.0"
 
 [[projects]]
   name = "github.com/Shopify/sarama"
@@ -334,6 +334,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1aee0ca10f27436fc20aa4105d448b036c5239373d0a4a40088f5940811f2e1f"
+  inputs-digest = "23ba04cb7cc71862d193499d4f3827b9e0d133ca5f2d86529ff12e334b607570"
   solver-name = "gps-cdcl"
   solver-version = 1

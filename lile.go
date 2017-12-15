@@ -12,7 +12,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/lile/fromenv"
-	"github.com/lileio/lile/pubsub"
 	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
@@ -84,6 +83,7 @@ func Serve() error {
 }
 
 func CreateServer() *grpc.Server {
+	// Default interceptors, [prometheus, opentracing]
 	AddUnaryInterceptor(grpc_prometheus.UnaryServerInterceptor)
 	AddStreamInterceptor(grpc_prometheus.StreamServerInterceptor)
 	AddUnaryInterceptor(otgrpc.OpenTracingServerInterceptor(
@@ -98,6 +98,7 @@ func CreateServer() *grpc.Server {
 
 	service.GRPCImplementation(gs)
 
+	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(gs)
 	http.Handle("/metrics", prometheus.Handler())
 	logrus.Infof("Prometheus metrics at :9000/metrics")
@@ -108,31 +109,6 @@ func CreateServer() *grpc.Server {
 	go http.ListenAndServe(":"+port, nil)
 
 	return gs
-}
-
-var clientSet = false
-
-func setPubSubClient() {
-	if !clientSet {
-		pubsub.SetClient(&pubsub.Client{
-			ServiceName: service.Name,
-			Provider:    fromenv.PubSubProvider(),
-		})
-		clientSet = true
-	}
-}
-
-func Subscribe(s pubsub.Subscriber) {
-	setPubSubClient()
-	pubsub.Subscribe(s)
-}
-
-func AddPubSubInterceptor(methodMap map[string]string) {
-	setPubSubClient()
-	AddUnaryInterceptor(pubsub.UnaryServerInterceptor(
-		pubsub.GlobalClient(),
-		methodMap,
-	))
 }
 
 // NewTestServer is a helper function to create a gRPC server on a unix socket
