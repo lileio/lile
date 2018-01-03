@@ -16,5 +16,10 @@ func main() {
 	      {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
 	})
 
+	pubsub.SetClient(&pubsub.Client{
+		ServiceName: lile.GlobalService().Name,
+		Provider:    fromenv.PubSubProvider(),
+	})
+
 	cmd.Execute()
 }
