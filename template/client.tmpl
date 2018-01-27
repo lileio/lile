@@ -1,0 +1,32 @@
+package {{ .SnakeCaseName }}
+
+import (
+	"sync"
+
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+)
+
+var (
+	cm = &sync.Mutex{}
+	Client {{ .CamelCaseName }}Client
+)
+
+func Get{{ .CamelCaseName }}Client() ({{ .CamelCaseName }}Client, error) {
+	cm.Lock()
+	defer cm.Unlock()
+
+	if Client != nil {
+		return Client, nil
+	}
+
+	logrus.Info("Creating {{ .Name }} gRPC client")
+	conn, err := grpc.Dial("{{ .SnakeCaseName }}:80", grpc.DialOption(grpc.WithInsecure()))
+	if err != nil {
+		return nil, err
+	}
+
+	cli := New{{ .CamelCaseName }}Client(conn)
+	Client = cli
+	return cli, nil
+}
