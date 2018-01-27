@@ -4,4 +4,5 @@ go:
  - 1.9
  - tip
 script:
+ - dep ensure
  - go test -v ./...
