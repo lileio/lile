@@ -115,8 +115,12 @@ func CreateServer() *grpc.Server {
 // it returns the socket location and a func to call which starts the server
 func NewTestServer(s *grpc.Server) (string, func()) {
 	// Create a temp random unix socket
-	uid := uuid.NewV1().String()
-	skt := "/tmp/" + uid
+	uid, err := uuid.NewV1()
+	if err != nil {
+		panic(err)
+	}
+
+	skt := "/tmp/" + uid.String()
 
 	ln, err := net.Listen("unix", skt)
 	if err != nil {
