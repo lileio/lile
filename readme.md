@@ -420,10 +420,16 @@ Subscribers conform to the [`lile.Subscriber`](https://godoc.org/github.com/lile
 type OrdersServiceSubscriber struct{}
 
 func (s *OrdersServiceSubscriber) Setup(c *pubsub.Client) {
-	c.On("shipments.updated", s.ShipmentUpdate, 30*time.Second, true)
+	c.On(pubsub.HandlerOptions{
+	 	Topic:    "shipments.updated",
+	 	Name:     "service_name",
+	 	Handler:  s.ShipmentUpdate,
+	 	Deadline: 30 * time.Second,
+	 	AutoAck:  true,
+	 })
 }
 
-func (s *OrdersServiceSubscriber) ShipmentUpdate(sh *shipments.Shipment) {
+func (s *OrdersServiceSubscriber) ShipmentUpdate(ctx context.Context, sh *shipments.Shipment, msg *pubsub.Msg) {
 	// do something with sh
 }
 ```
