@@ -12,8 +12,8 @@ import (
 
 func main() {
 	s := &server.{{ .CamelCaseName }}Server{}
-
 	lile.Name("{{ .Name }}")
+	lile.Subscriber(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
 	lile.Server(func(g *grpc.Server) {
 	      {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
 	})
@@ -23,5 +23,7 @@ func main() {
 		Provider:    fromenv.PubSubProvider(),
 	})
 
-	cmd.Execute()
+	go cmd.Execute()
+
+	lile.ShutdownHook()
 }
