@@ -9,10 +9,7 @@ import (
 
 var cfgFile string
 
-var RootCmd = &cobra.Command{
-	Use:   "{{ .Name }}",
-	Short: "A gRPC based service",
-}
+var RootCmd = lile.BaseCommand("{{ .Name }}", "A gRPC based service")
 
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
