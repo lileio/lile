@@ -4,7 +4,22 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/pkg/errors"
 )
+
+const (
+	CONSUL_DEFAULT_ADDRESS    = "localhost:8500"
+	ZOOKEEPER_DEFAULT_ADDRESS = "localhost:3000"
+)
+
+type ServiceDescriptor struct {
+}
+
+type MetaData struct {
+}
+
+type Check struct {
+}
 
 //Client provides an interface for getting data out of Consul
 type Client interface {
@@ -16,50 +31,17 @@ type Client interface {
 	DeRegister(string) error
 }
 
-type registryClient struct {
-	consul *api.Client
-}
-
-//NewConsul returns a Client interface for given consul address
-func NewConsulClient(addr string) (*registryClient, error) {
-	config := api.DefaultConfig()
-	config.Address = addr
-	c, err := api.NewClient(config)
-	if err != nil {
-		return nil, err
+func NewRegistryClient(provider, address string) (Client, error) {
+	switch provider {
+	case "consul":
+		addr := address
+		if len(addr) == 0 {
+			addr = CONSUL_DEFAULT_ADDRESS
+		}
+		return NewConsulClient(addr)
+	case "zookeeper":
+		return nil, errors.New("zookeeper not implemented yet")
+	default:
+		return nil, fmt.Errorf("unknown registry provider: %s", provider)
 	}
-	return &registryClient{consul: c}, nil
-}
-
-// Register a service with consul local agent
-func (c *registryClient) Register(id string, name string, port int, check *api.AgentServiceCheck) error {
-	reg := &api.AgentServiceRegistration{
-		ID:                name,
-		Name:              name,
-		EnableTagOverride: false,
-		Check:             check,
-		Port:              port,
-		// TODO: fill tags and address (os.getenv(hostname))
-		Tags:              nil,
-		Address:           "",
-	}
-	return c.consul.Agent().ServiceRegister(reg)
-}
-
-// DeRegister a service with consul local agent
-func (c *registryClient) DeRegister(id string) error {
-	return c.consul.Agent().ServiceDeregister(id)
-}
-
-// Service return a service
-func (c *registryClient) Service(service, tag string, queryOpts *api.QueryOptions) ([]*api.ServiceEntry, *api.QueryMeta, error) {
-	passingOnly := true
-	addrs, meta, err := c.consul.Health().Service(service, tag, passingOnly, queryOpts)
-	if len(addrs) == 0 && err == nil {
-		return nil, nil, fmt.Errorf("service ( %s ) was not found", service)
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-	return addrs, meta, nil
 }
