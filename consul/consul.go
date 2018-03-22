@@ -1,24 +1,31 @@
-package registry
+package consul
 
 import (
 	"fmt"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/sirupsen/logrus"
 )
 
+const CONSUL_DEFAULT_ADDRESS = "localhost:8500"
+
 type registryClient struct {
-	consul *api.Client
+	consul  *api.Client
+	address string
 }
 
 //NewConsul returns a Client interface for given consul address
-func NewConsulClient(addr string) (*registryClient, error) {
+func NewClient(addr string) (*registryClient, error) {
+	if len(addr) == 0 {
+		addr = CONSUL_DEFAULT_ADDRESS
+	}
 	config := api.DefaultConfig()
 	config.Address = addr
 	c, err := api.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
-	return &registryClient{consul: c}, nil
+	return &registryClient{consul: c, address: addr}, nil
 }
 
 // Register a service with consul local agent
@@ -30,15 +37,27 @@ func (c *registryClient) Register(id string, name string, port int, check *api.A
 		Check:             check,
 		Port:              port,
 		// TODO: fill tags and address (os.getenv(hostname))
-		Tags:              nil,
-		Address:           "",
+		Tags:    nil,
+		Address: "",
 	}
-	return c.consul.Agent().ServiceRegister(reg)
+	err := c.consul.Agent().ServiceRegister(reg)
+	if err != nil {
+		logrus.Errorf("Failed to register service at '%s'. error: %v", c.address, err)
+	} else {
+		logrus.Infof("Regsitered service '%s' at consul.", id)
+	}
+	return err
 }
 
 // DeRegister a service with consul local agent
 func (c *registryClient) DeRegister(id string) error {
-	return c.consul.Agent().ServiceDeregister(id)
+	err := c.consul.Agent().ServiceDeregister(id)
+	if err != nil {
+		logrus.Errorf("Failed to deregister service by id: '%s'. Error: %v", id, err)
+	} else {
+		logrus.Infof("Deregistered service '%s' at consul.", id)
+	}
+	return err
 }
 
 // Service return a service
