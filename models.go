@@ -1,4 +1,4 @@
-package models
+package lile
 
 import (
 	"fmt"
@@ -9,8 +9,8 @@ import (
 
 // Service is a grpc compatible server with extra features
 type Service struct {
-	Name string
-	ID   string
+	Name       string
+	ID         string
 	Subscriber pubsub.Subscriber
 	// Interceptors
 	UnaryInts  []grpc.UnaryServerInterceptor
@@ -38,13 +38,13 @@ func (c *HttpConfig) Address() string {
 
 // The application config holder
 type AppConfig struct {
-	RegistryAddress string
+	RegistryAddress  string
 	RegistryProvider string
-	PubSubProvider string
-	PubSubAddress string
+	PubSubProvider   string
+	PubSubAddress    string
 	// Service host configuration
-	Service         HttpConfig
-	Prometheus      HttpConfig
+	Service    HttpConfig
+	Prometheus HttpConfig
 }
 
 // Checks whether the services uses a registry.

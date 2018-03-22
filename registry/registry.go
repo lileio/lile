@@ -4,12 +4,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/lileio/lile/consul"
 	"github.com/pkg/errors"
-)
-
-const (
-	CONSUL_DEFAULT_ADDRESS    = "localhost:8500"
-	ZOOKEEPER_DEFAULT_ADDRESS = "localhost:3000"
 )
 
 type ServiceDescriptor struct {
@@ -34,13 +30,9 @@ type Client interface {
 func NewRegistryClient(provider, address string) (Client, error) {
 	switch provider {
 	case "consul":
-		addr := address
-		if len(addr) == 0 {
-			addr = CONSUL_DEFAULT_ADDRESS
-		}
-		return NewConsulClient(addr)
+		return consul.NewClient(address)
 	case "zookeeper":
-		return nil, errors.New("zookeeper not implemented yet")
+		return nil, errors.New("not implemented yet")
 	default:
 		return nil, fmt.Errorf("unknown registry provider: %s", provider)
 	}

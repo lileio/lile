@@ -15,9 +15,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/hashicorp/consul/api"
 	"github.com/lileio/lile/fromenv"
-	"github.com/lileio/lile/models"
 	"github.com/lileio/lile/registry"
 	"github.com/lileio/pubsub"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -28,12 +26,11 @@ import (
 )
 
 var (
-	service = NewService("lile")
-	serviceListener net.Listener
+	service          = NewService("lile")
+	serviceListener  net.Listener
 	prometheusServer *http.Server
-	grpcServer *grpc.Server
+	grpcServer       *grpc.Server
 )
-
 
 func BaseCommand(serviceName, shortDescription string) *cobra.Command {
 	command := &cobra.Command{
@@ -56,21 +53,21 @@ func generateId(n string) string {
 	return n + "-" + uid.String()
 }
 
-func defaultOptions(n string) models.Service {
-	return models.Service{
-		ID: generateId(n),
-		Name: n,
+func defaultOptions(n string) Service {
+	return Service{
+		ID:                 generateId(n),
+		Name:               n,
 		GRPCImplementation: func(s *grpc.Server) {},
 	}
 }
 
 // Returns the global service
-func GlobalService() *models.Service {
+func GlobalService() *Service {
 	return &service
 }
 
 // NewService creates a lile service with N options
-func NewService(name string) models.Service {
+func NewService(name string) Service {
 	return defaultOptions(name)
 }
 
@@ -96,7 +93,7 @@ func Host(h string) {
 }
 
 // Attaches the gRPC implementation to the service
-func Server(r models.RegisterImplementation) {
+func Server(r RegisterImplementation) {
 	service.GRPCImplementation = r
 }
 
@@ -113,35 +110,9 @@ func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
 func Run() {
 	// add to registry
 	if service.Config.UsesRegistry() {
-		rc, rcErr := GetRegistryClient()
+		rc, rcErr := CreateRegistryClient()
 		if rcErr == nil {
-			err := rc.Register(service.ID, service.Name, service.Config.Service.Port, &api.AgentServiceCheck{
-				CheckID:                        "",
-				Name:                           "",
-				Args:                           nil,
-				Script:                         "",
-				DockerContainerID:              "",
-				Shell:                          "",
-				Interval:                       "",
-				Timeout:                        "",
-				TTL:                            "",
-				HTTP:                           "",
-				Header:                         nil,
-				Method:                         "",
-				TCP:                            "",
-				Status:                         "",
-				Notes:                          "",
-				TLSSkipVerify:                  false,
-				GRPC:                           "",
-				GRPCUseTLS:                     false,
-				DeregisterCriticalServiceAfter: "",
-			})
-
-			if err != nil {
-				logrus.Errorf("Failed to register service at '%s'. error: %v", service.Config.RegistryAddress, err)
-			} else {
-				logrus.Infof("Regsitered service '%s' at consul.", service.ID)
-			}
+			rc.Register(service.ID, service.Name, service.Config.Service.Port, nil)
 		} else {
 			logrus.Errorf("Failed to create registry client with address: '%s'. Error: %v", service.Config.RegistryAddress, rcErr)
 		}
@@ -186,19 +157,14 @@ func gracefulShutdown() {
 func shutdown() {
 	logrus.Infof("Shutting gRPC service '%s'", service.Name)
 	if service.Config.UsesRegistry() {
-		rc, rcErr := GetRegistryClient()
+		rc, rcErr := CreateRegistryClient()
 		if rcErr == nil {
-			err := rc.DeRegister(service.Name)
-			if err != nil {
-				logrus.Errorf("Failed to deregister service by id: '%s'. Error: %v", service.ID, err)
-			} else {
-				logrus.Infof("Deregistered service '%s' at consul.", service.ID)
-			}
+			rc.DeRegister(service.Name)
 		}
 	}
 
 	grpcServer.GracefulStop()
-	ctx, cancel := context.WithTimeout(context.TODO(), 5 *time.Second)
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 	if err := prometheusServer.Shutdown(ctx); err != nil {
 		logrus.Fatalf("Timeout during shutdown of prometheus server. Error: %v", err)
@@ -214,7 +180,7 @@ func shutdown() {
 }
 
 // Returns a registry client based on the config
-func GetRegistryClient() (registry.Client, error) {
+func CreateRegistryClient() (registry.Client, error) {
 	rc, err := registry.NewRegistryClient(service.Config.RegistryProvider, service.Config.RegistryAddress)
 	if err != nil {
 		logrus.Errorf("Failed to create wuth registry address '%s'", service.Config.RegistryAddress)
@@ -266,7 +232,7 @@ func createGrpcServer() *grpc.Server {
 
 func startPrometheusServer() {
 
-	prometheusServer = &http.Server{Addr: service.Config.Prometheus.Address() }
+	prometheusServer = &http.Server{Addr: service.Config.Prometheus.Address()}
 
 	http.Handle("/metrics", promhttp.Handler())
 
