@@ -1,34 +1,31 @@
 ![logo](https://raw.githubusercontent.com/lileio/lile/master/lile.png)
 
-> **ALPHA:** Lile is currently considered "Alpha" in that things may change. Currently I am gathering feedback and will finalise Lile shortly to avoid breaking changes going forward.
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/lileio/Lobby) [![Build Status](https://travis-ci.org/lileio/lile.svg?branch=master)](https://travis-ci.org/lileio/lile) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile) [![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
-Lile is a generator and set of tools/libraries to help you quickly create services that communicate via [gRPC](https://grpc.io) (REST via a [gateway](https://github.com/grpc-ecosystem/grpc-gateway)) and publish subscribe.
+Lile is a application generator (think `create-react-app`, `rails new` or `django startproject`) for gRPC services in Go and a set of tools/libraries.
 
 The primary focus of Lile is to remove the boilerplate when creating new services by creating a basic structure, test examples, Dockerfile, Makefile etc.
 
-As well a simple service generator Lile extends the basic gRPC server to include pluggable options like metrics (e.g. [Prometheus](prometheus.io)), tracing (e.g. [Zipkin](zipkin.io)) and PubSub (e.g. [Google PubSub](https://cloud.google.com/pubsub/docs/overview)).
+Lile comes with basic pre setup with pluggable options for things like...
 
-Chat to me on Slack on the [Gopher Slack](https://invite.slack.golangbridge.org/) channel [#lile](https://gophers.slack.com/messages/C6RHLV3LN)
-
-[![Build Status](https://travis-ci.org/lileio/lile.svg?branch=master)](https://travis-ci.org/lileio/lile) [![GoDoc](https://godoc.org/github.com/lileio/lile?status.svg)](https://godoc.org/github.com/lileio/lile) [![Go Report Card](https://goreportcard.com/badge/github.com/lileio/lile)](https://goreportcard.com/report/github.com/lileio/lile) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
-
-[![asciicast](https://asciinema.org/a/rLAGV6nsdBreyWgXtb6bgL3Hb.png)](https://asciinema.org/a/rLAGV6nsdBreyWgXtb6bgL3Hb)
+* Metrics (e.g. [Prometheus](prometheus.io))
+* Tracing (e.g. [Zipkin](zipkin.io))
+* PubSub (e.g. [Google PubSub](https://cloud.google.com/pubsub/docs/overview))
+* Service Discovery
 
 ### Installation
 
-Installing Lile is easy, using `go get` you can install the cmd line app to generate new services and the required libraries.
+Installing Lile is easy, using `go get` you can install the cmd line app to generate new services and the required libraries. First you'll need Google's [Protocol Buffers](https://developers.google.com/protocol-buffers/) installed.
+
 
 ```
+$ brew install protobuf
 $ go get -u github.com/lileio/lile/...
 ```
-
-You will also need Google's [Protocol Buffers](https://developers.google.com/protocol-buffers/) installed.
 
 ### Getting Started
 
 To generate a new service, run `lile new` with a short folder path.
-
-Lile is smart enough to evaluate `username/service` to a full `$GOPATH` directory and defaults to `github.com`.
 
 ```
 $ lile new lileio/users
@@ -36,33 +33,12 @@ $ lile new lileio/users
 
 # Guide
 
-- [Installation](#installation)
 - [Creating a Service](#creating-a-service)
 - [Service Definition](#service-definitions)
 - [Generating RPC Methods](#generating-rpc-methods)
 - [Running and Writing Tests](#running--writing-tests)
 - [Using the Generated cmds](#using-the-generated-cmds)
 - [Adding your own cmds](#adding-your-own-cmds)
-- [Exposing Prometheus Metrics](#exposing--collecting-prometheus-metrics)
-- [Publish & Subscribe](#publish--subscribe)
-- [Publishing an Event](#publishing-an-event)
-- [Automatically Publishing Events](#automatically-publishing-events)
-- [Subscribing to Events](#subscribing-to-events)
-- [Tracing](#tracing)
-
-## Installation
-
-First, you need to have a working Go installation, once you have Go installed you can then install Lile.
-
-Installing Lile is easy, using `go get` you can install the cmd line app to generate new services and the required libraries.
-
-```
-$ go get github.com/lileio/lile/...
-```
-
-You will also need Google's [Protocol Buffers](https://developers.google.com/protocol-buffers/) installed.
-
-On MacOS you can simply `brew install protobuf`
 
 ## Creating a Service
 
@@ -80,11 +56,11 @@ This will create a project in `$GOPATH/src/github.com/lileio/slack`
 
 ## Service Definitions
 
-Lile services mainly speak gRPC and therefore uses [protocol buffers](https://developers.google.com/protocol-buffers/) as the Interface Definition Language (IDL) for describing both the service interface and the structure of the payload messages. It is possible to use other alternatives if desired.
+Lile creates [gRPC](https://grpc.io/) and therefore uses [protocol buffers](https://developers.google.com/protocol-buffers/) as the language for describing the service methods, the requests and responses.
 
-I highly recommend reading the [Google API Design](https://cloud.google.com/apis/design/) docs for good advice around general naming of RPC methods and messages and how they might translate to REST/JSON if needed.
+I highly recommend reading the [Google API Design](https://cloud.google.com/apis/design/) docs for good advice around general naming of RPC methods and messages and how they might translate to REST/JSON, via the [gRPC gateway](https://github.com/grpc-ecosystem/grpc-gateway)
 
-An example of a service definition can be found in the Lile [`account_service`](https://github.com/lileio/account_service)
+An example of a service definition can be found in the Lile example project [`account_service`](https://github.com/lileio/account_service)
 
 ``` protobuf
 service AccountService {
@@ -305,20 +281,16 @@ ok      github.com/lileio/slack/server  0.331s  coverage: 75.0% of statements
 
 ## Using the Generated cmds
 
-Lile generates a cmd line application when you generate your service. You can extend the app with your own cmds or use the built-in cmds to run the service.
+Lile generates a cmd line application based on [cobra](https://github.com/spf13/cobra) when you generate your service. You can extend the app with your own cmds or use the built-in cmds to run the service.
 
 Running the cmd line app without any arguments will print the generated help.
 
 For example `go run orders/main.go`
 
-### serve
-Running `serve` will run the RPC server.
-
-### subscribe
-Running `subscribe` will listen to pubsub events with your subscribers.
-
 ### up
 Running `up` will run both the RPC server and the pubsub subscribers.
+
+```go run orders/main.go```
 
 ## Adding your own cmds
 
@@ -330,125 +302,3 @@ $ cobra add import
 ```
 
 You can now edit the file generated to create your cmd, `cobra` will automatically add the cmd's name to the help. 
-
-## Exposing & Collecting Prometheus Metrics
-
-By default Lile collects [Prometheus](prometheus.io) metrics and exposes them at `:9000/metrics`. You can set a custom port by setting the env `PROMETHEUS_PORT`.  
-
-If your service is running, you can use cURL to preview the Prometheus metrics
-
-```
-$ curl :9000/metrics
-```
-
-You should see something along the lines of...
-
-```
-# HELP go_gc_duration_seconds A summary of the GC invocation durations.
-# TYPE go_gc_duration_seconds summary
-go_gc_duration_seconds{quantile="0"} 0
-go_gc_duration_seconds{quantile="0.25"} 0
-go_gc_duration_seconds{quantile="0.5"} 0
-go_gc_duration_seconds{quantile="0.75"} 0
-go_gc_duration_seconds{quantile="1"} 0
-go_gc_duration_seconds_sum 0
-go_gc_duration_seconds_count 0
-...
-...
-```
-
-The Lile Prometheus metrics implementation plugs itself into gPRC using an interceptor using [go-grpc-prometheus](https://github.com/grpc-ecosystem/go-grpc-prometheus) providing metrics such as;
-
-```
-grpc_server_started_total
-grpc_server_msg_received_total
-grpc_server_msg_sent_total
-grpc_server_handling_seconds_bucket
-```
-
-For more on using Prometheus, collecting and graphing these metrics, see [Getting started](https://prometheus.io/docs/introduction/getting_started/) at Prometheus.io
-
-And see [useful query examples](https://github.com/grpc-ecosystem/go-grpc-prometheus#useful-query-examples) for examples of useful gRPC Prometheus queries.
-
-## Publish & Subscribe
-
-Whilst most services will communicate predominantly via RPC, Lile provides a [library](https://github.com/lileio/pubsub) for doing [Publish & Subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) (or Pub Sub) communication.
-
-This is particularly helpful when developing a service that needs to be updated or do some work when another service has performed an action, but you don't want to hold up the request.
-
-Publishers are loosely coupled to subscribers, and need not even know of their existence. Most [Lile services](https://github.com/lileio) will already provide events you can hook into, but you can easily add events to your own service. 
-
-Lile's Pub Sub is based on "at least once" delivery of message **per subscriber**. In other words, given an `account_service` (publisher) that publishes the event `account_created`, if multiple instances of an `email_service` (subscriber) and `fraud_detection_service` (subscriber) are running, only one instance of each `email_service` and `fraud_detection_service` will each receive a message.
-
-## Publishing an Event
-
-(PubSub has moved to it's own package located at https://github.com/lileio/pubsub)
-
-If Lile pubsub is configured (which happens via env vars automatically or manually) then only a simple call to `Publish` is required.
-
-Here's an example `Get` method on an "orders" service.
-
-``` go
-func (s OrdersServer) Get(ctx context.Context, r *orders.GetRequest) (*orders.GetResponse, error) {
-	o, err := getOrder(r.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &orders.GetResponse{
-		Id:   o.Id,
-		Name: o.Name,
-	}
-	pubsub.Publish(ctx, "orders_service.Get", res)
-	return res, nil
-}
-```
-
-`Publish` takes a `context.Context` for tracing and metrics, a topic name and a `proto.Msg`, which is any object that can be serialised to protobuf.
-
-## Automatically Publishing Events
-
-Automatically publishing events has been removed, due to their misuse in general and confusion. Now you should manually publish events.
-
-## Subscribing to Events
-
-Lile generates projects by default with a `subscribers.go` file with some basic setup to subscribe to events.
-
-Subscribers conform to the [`lile.Subscriber`](https://godoc.org/github.com/lileio/pubsub#Subscriber) interface which has a special `Setup` event for subscribing to events from any topic.
-
-```go
-type OrdersServiceSubscriber struct{}
-
-func (s *OrdersServiceSubscriber) Setup(c *pubsub.Client) {
-	c.On(pubsub.HandlerOptions{
-	 	Topic:    "shipments.updated",
-	 	Name:     "service_name",
-	 	Handler:  s.ShipmentUpdate,
-	 	Deadline: 30 * time.Second,
-	 	AutoAck:  true,
-	 })
-}
-
-func (s *OrdersServiceSubscriber) ShipmentUpdate(ctx context.Context, sh *shipments.Shipment, msg *pubsub.Msg) {
-	// do something with sh
-}
-```
-
-Functions that listen to topics can take anything that conforms to pubsub's [Handler interface](https://godoc.org/github.com/lileio/pubsub#Handler)
-
-Protobuf messages are automatically decoded.
-
-## Tracing
-
-Lile has built in tracing that reports to [opentracing](http://opentracing.io/) compatible tracers set to the `GlobalTracer` and by default, Lile with report all gRPC methods and pubsub publish/subscribing actions.
-
-![](https://2.bp.blogspot.com/-0pFWb8zb-Cg/WPb9qKoDwDI/AAAAAAAAD2g/VjUFl1-_tYgy6zpzw0iyjfwh3gh0rg92wCLcB/s640/go-2.png)
-
-### Zipkin
-
-To have Lile send all tracing events to [Zipkin](http://zipkin.io) via HTTP, set the `ZIPKIN_SERVICE_HOST` ENV variable to the DNS name of your Zipkin service. Kubernetes will expose the `ZIPKIN_SERVICE_HOST` automatically to a container if there is service already running named `zipkin`.
-
-
-### Stackdriver (Google Cloud Platform) Trace
-
-Stackdriver provide a `zipkin-collector` image that will listen for Zipkin traces, convert and send them to Stackdriver. It's quite awesome if you're looking for tracing but don't want to maintain Zipkin! See the [Google Cloud Tracing](https://cloud.google.com/trace/docs/zipkin#option_1_using_a_container_image_to_set_up_your_server) docs for more
