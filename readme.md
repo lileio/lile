@@ -2,7 +2,7 @@
 
 > **ALPHA:** Lile is currently considered "Alpha" in that things may change. Currently I am gathering feedback and will finalise Lile shortly to avoid breaking changes going forward.
 
-Lile is a generator and set of tools/libraries to help you quickly create services that communicate via [gRPC](grpc.io) (REST via a [gateway](https://github.com/grpc-ecosystem/grpc-gateway)) and publish subscribe.
+Lile is a generator and set of tools/libraries to help you quickly create services that communicate via [gRPC](https://grpc.io) (REST via a [gateway](https://github.com/grpc-ecosystem/grpc-gateway)) and publish subscribe.
 
 The primary focus of Lile is to remove the boilerplate when creating new services by creating a basic structure, test examples, Dockerfile, Makefile etc.
 
