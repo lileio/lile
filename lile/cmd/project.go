@@ -141,5 +141,5 @@ func lastFromSplit(input, split string) string {
 }
 
 func srcPath() string {
-	return filepath.Join(os.Getenv("GOPATH"), "src") + string(os.PathSeparator)
+	return filepath.Join(gopath, "src") + string(os.PathSeparator)
 }

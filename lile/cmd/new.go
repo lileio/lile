@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
@@ -17,11 +19,26 @@ var newCmd = &cobra.Command{
 	Run:   new,
 }
 
-var templatePath = os.Getenv("GOPATH") + "/src/github.com/lileio/lile/template"
+var (
+	gopath       string
+	templatePath string
+)
 
 var out = colorable.NewColorableStdout()
 
 func init() {
+	gopath = os.Getenv("GOPATH")
+	if gopath == "" {
+		b, err := exec.Command("go", "env", "GOPATH").CombinedOutput()
+		if err != nil {
+			panic(string(b))
+		}
+		gopath = strings.TrimSpace(string(b))
+	}
+	if paths := filepath.SplitList(gopath); len(paths) > 0 {
+		gopath = paths[0]
+	}
+	templatePath = filepath.Clean(filepath.Join(gopath, "/src/github.com/lileio/lile/template"))
 	RootCmd.AddCommand(newCmd)
 }
 
