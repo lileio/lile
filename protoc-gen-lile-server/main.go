@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -25,7 +26,8 @@ import (
 )
 
 var (
-	templatePath = os.Getenv("GOPATH") + "/src/github.com/lileio/lile/protoc-gen-lile-server/templates"
+	gopath       string
+	templatePath string
 
 	input  io.Reader
 	output io.Writer
@@ -53,6 +55,21 @@ type goimport struct {
 	Package   string
 	GoPackage string
 	GoType    string
+}
+
+func init() {
+	gopath = os.Getenv("GOPATH")
+	if gopath == "" {
+		b, err := exec.Command("go", "env", "GOPATH").CombinedOutput()
+		if err != nil {
+			panic(string(b))
+		}
+		gopath = strings.TrimSpace(string(b))
+	}
+	if paths := filepath.SplitList(gopath); len(paths) > 0 {
+		gopath = paths[0]
+	}
+	templatePath = filepath.Clean(filepath.Join(gopath, "/src/github.com/lileio/lile/protoc-gen-lile-server/templates"))
 }
 
 func main() {
