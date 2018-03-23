@@ -8,8 +8,8 @@ The primary focus of Lile is to remove the boilerplate when creating new service
 
 Lile comes with basic pre setup with pluggable options for things like...
 
-* Metrics (e.g. [Prometheus](prometheus.io))
-* Tracing (e.g. [Zipkin](zipkin.io))
+* Metrics (e.g. [Prometheus](https://prometheus.io))
+* Tracing (e.g. [Zipkin](https://zipkin.io))
 * PubSub (e.g. [Google PubSub](https://cloud.google.com/pubsub/docs/overview))
 * Service Discovery
 
