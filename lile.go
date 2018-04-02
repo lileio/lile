@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
@@ -14,7 +13,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/lile/fromenv"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/natefinch/npipe"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -117,25 +115,15 @@ func CreateServer() *grpc.Server {
 // hosts will have a Windows Named pipe, anything else gets a UNIX socket
 func getTestServerTransportOrPanic()(string, net.Listener) {
 	var uniqueAddress string
-	var serverListener net.Listener
-	var err error
 
 	// Create a temp random unix socket
 	uid, err := uuid.NewV1()
 	if err != nil {
 		panic(err)
 	}
-	uniqueAddress = uid.String()
+	uniqueAddress = formatPlatformTestSeverAddress(uid.String())
 
-	if runtime.GOOS == "windows" {
-		uniqueAddress = `\\.\pipe\` + uniqueAddress
-		serverListener, err = npipe.Listen(uniqueAddress)
-
-	} else {
-		uniqueAddress = "/tmp/" + uniqueAddress
-		serverListener, err = net.Listen("unix", uniqueAddress)
-
-	}
+	serverListener, err := getTestServerListener(uniqueAddress)
 
 	if err != nil {
 		panic(err)
@@ -156,35 +144,13 @@ func NewTestServer(s *grpc.Server) (string, func()) {
 	}
 }
 
-//   Returns a dialer function for the underlying platform. Returns a Windows
-// named pipe if asked for Windows, else a UNIX socket
-func getDialerFunctionForPlatform(platform string)(
-		func(string)(net.Conn, error)) {
-
-	var dialFunc func(string)(net.Conn, error)
-
-	if platform == "windows" {
-		dialFunc = func(addr string)(net.Conn, error) {
-			return npipe.Dial(addr)
-		}
-	} else {
-		dialFunc = func(addr string)(net.Conn, error) {
-			return net.Dial("unix", addr)
-		}
-	}
-
-	return dialFunc
-}
-
 // TestConn is a connection that connects to a socket based connection
 func TestConn(addr string) *grpc.ClientConn {
-
-	dialFunc := getDialerFunctionForPlatform(runtime.GOOS)
 
 	conn, err := grpc.Dial(
 		addr,
 		grpc.WithDialer(func(addr string, d time.Duration) (net.Conn, error) {
-			return dialFunc(addr)
+			return dialTestServer(addr)
 		}),
 		grpc.WithInsecure(),
 		grpc.WithTimeout(1*time.Second),
