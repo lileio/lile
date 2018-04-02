@@ -113,31 +113,33 @@ func CreateServer() *grpc.Server {
 
 //   Creates a server listener dependent on the underlying platform. Windows
 // hosts will have a Windows Named pipe, anything else gets a UNIX socket
-func getTestServerTransportOrPanic()(string, net.Listener) {
+func getTestServerTransport()(string, net.Listener, error) {
 	var uniqueAddress string
 
-	// Create a temp random unix socket
+	// Create a random string for part of the address
 	uid, err := uuid.NewV1()
 	if err != nil {
-		panic(err)
+		return "", nil, err
 	}
+
 	uniqueAddress = formatPlatformTestSeverAddress(uid.String())
 
 	serverListener, err := getTestServerListener(uniqueAddress)
-
 	if err != nil {
-		panic(err)
+		return "", nil, err
 	}
 
-	return uniqueAddress, serverListener
+	return uniqueAddress, serverListener, nil
 }
 
 //   NewTestServer is a helper function to create a gRPC server on a non-network
 // socket and it returns the socket location and a func to call which starts
 // the server
 func NewTestServer(s *grpc.Server) (string, func()) {
-
-	socketAddress, listener := getTestServerTransportOrPanic()
+	socketAddress, listener, err := getTestServerTransport()
+	if err != nil {
+		panic(err)
+	}
 
 	return socketAddress, func() {
 		s.Serve(listener)
