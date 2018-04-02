@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
@@ -13,6 +14,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/lile/fromenv"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/natefinch/npipe"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -111,33 +113,78 @@ func CreateServer() *grpc.Server {
 	return gs
 }
 
-// NewTestServer is a helper function to create a gRPC server on a unix socket
-// it returns the socket location and a func to call which starts the server
-func NewTestServer(s *grpc.Server) (string, func()) {
+//   Creates a server listener dependent on the underlying platform. Windows
+// hosts will have a Windows Named pipe, anything else gets a UNIX socket
+func getTestServerTransportOrPanic()(string, net.Listener) {
+	var uniqueAddress string
+	var serverListener net.Listener
+	var err error
+
 	// Create a temp random unix socket
 	uid, err := uuid.NewV1()
 	if err != nil {
 		panic(err)
 	}
+	uniqueAddress = uid.String()
 
-	skt := "/tmp/" + uid.String()
+	if runtime.GOOS == "windows" {
+		uniqueAddress = `\\.\pipe\` + uniqueAddress
+		serverListener, err = npipe.Listen(uniqueAddress)
 
-	ln, err := net.Listen("unix", skt)
+	} else {
+		uniqueAddress = "/tmp/" + uniqueAddress
+		serverListener, err = net.Listen("unix", uniqueAddress)
+
+	}
+
 	if err != nil {
 		panic(err)
 	}
 
-	return skt, func() {
-		s.Serve(ln)
+	return uniqueAddress, serverListener
+}
+
+//   NewTestServer is a helper function to create a gRPC server on a non-network
+// socket and it returns the socket location and a func to call which starts
+// the server
+func NewTestServer(s *grpc.Server) (string, func()) {
+
+	socketAddress, listener := getTestServerTransportOrPanic()
+
+	return socketAddress, func() {
+		s.Serve(listener)
 	}
+}
+
+//   Returns a dialer function for the underlying platform. Returns a Windows
+// named pipe if asked for Windows, else a UNIX socket
+func getDialerFunctionForPlatform(platform string)(
+		func(string)(net.Conn, error)) {
+
+	var dialFunc func(string)(net.Conn, error)
+
+	if platform == "windows" {
+		dialFunc = func(addr string)(net.Conn, error) {
+			return npipe.Dial(addr)
+		}
+	} else {
+		dialFunc = func(addr string)(net.Conn, error) {
+			return net.Dial("unix", addr)
+		}
+	}
+
+	return dialFunc
 }
 
 // TestConn is a connection that connects to a socket based connection
 func TestConn(addr string) *grpc.ClientConn {
+
+	dialFunc := getDialerFunctionForPlatform(runtime.GOOS)
+
 	conn, err := grpc.Dial(
 		addr,
 		grpc.WithDialer(func(addr string, d time.Duration) (net.Conn, error) {
-			return net.Dial("unix", addr)
+			return dialFunc(addr)
 		}),
 		grpc.WithInsecure(),
 		grpc.WithTimeout(1*time.Second),
