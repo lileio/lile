@@ -8,6 +8,6 @@ import (
 )
 
 func TestName(t *testing.T) {
-	lile.Name("test_service")
+	lile.NewService("test_service")
 	assert.Equal(t, lile.GlobalService().Name, "test_service")
 }

@@ -4,6 +4,7 @@ package lile
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -16,8 +17,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/lile/fromenv"
-	"github.com/lileio/lile/registry"
-	"github.com/lileio/pubsub"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
@@ -26,262 +25,194 @@ import (
 )
 
 var (
-	service          = NewService("lile")
-	serviceListener  net.Listener
-	prometheusServer *http.Server
-	grpcServer       *grpc.Server
+	service = NewService("lile")
 )
+
+// Service is a gRPC based server with extra features
+type Service struct {
+	ID   string
+	Name string
+
+	// Interceptors
+	UnaryInts  []grpc.UnaryServerInterceptor
+	StreamInts []grpc.StreamServerInterceptor
+
+	// The RPC server implementation
+	GRPCImplementation RegisterImplementation
+	GRPCOptions        []grpc.ServerOption
+
+	// gRPC and Prometheus endpoints
+	Config     ServerConfig
+	Prometheus ServerConfig
+
+	// Registery allows Lile to work with external registeries like
+	// consul, zookeeper or similar
+	Registery Registery
+
+	// Private utils, exposed so they can be useful if needed
+	ServiceListener  net.Listener
+	GRPCServer       *grpc.Server
+	PrometheusServer *http.Server
+}
+
+type RegisterImplementation func(s *grpc.Server)
+
+// ServerConfig is a generic server configuration
+type ServerConfig struct {
+	Port int
+	Host string
+}
+
+func (c *ServerConfig) Address() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+}
 
 func BaseCommand(serviceName, shortDescription string) *cobra.Command {
 	command := &cobra.Command{
 		Use:   serviceName,
 		Short: shortDescription,
 	}
-	command.PersistentFlags().StringVar(&service.Config.RegistryAddress, "registry_address", "", "Address to use for consul.")
-	command.PersistentFlags().StringVar(&service.Config.RegistryProvider, "registry", "", "Sets the registry provider. Possible values: ['consul', 'zookeeper']")
-	command.PersistentFlags().StringVar(&service.Config.PubSubProvider, "pubsub", "", "Sets the pubsub provider. Possible values: ['gcloud']")
-	command.PersistentFlags().IntVar(&service.Config.Prometheus.Port, "prometheus_port", 9000, "Prometheus port.")
-	command.PersistentFlags().StringVar(&service.Config.Prometheus.Host, "prometheus_host", "localhost", "Prometheus hostname.")
-	command.PersistentFlags().IntVar(&service.Config.Service.Port, "service_port", 8000, "Service port.")
-	command.PersistentFlags().StringVar(&service.Config.Service.Host, "service_host", "localhost", "Service hostname.")
+
+	command.PersistentFlags().StringVar(&service.Config.Host, "grpc_host", "0.0.0.0", "gRPC service hostname")
+	command.PersistentFlags().IntVar(&service.Config.Port, "grpc_port", 8000, "gRPC port")
+	command.PersistentFlags().StringVar(&service.Prometheus.Host, "prometheus_host", "0.0.0.0", "Prometheus metrics hostname")
+	command.PersistentFlags().IntVar(&service.Prometheus.Port, "prometheus_port", 9000, "Prometheus metrics port")
 
 	return command
 }
 
-func generateId(n string) string {
-	uid, _ := uuid.NewV4()
-	return n + "-" + uid.String()
-}
-
-func defaultOptions(n string) Service {
-	return Service{
-		ID:                 generateId(n),
-		Name:               n,
-		GRPCImplementation: func(s *grpc.Server) {},
-	}
-}
-
-// Returns the global service
+// GlobalService returns the global service
 func GlobalService() *Service {
 	return &service
 }
 
-// NewService creates a lile service with N options
+// NewService creates a lile service with default options
 func NewService(name string) Service {
 	return defaultOptions(name)
 }
 
-func Subscriber(s pubsub.Subscriber) {
-	service.Subscriber = s
-}
-
-func Id(n string) {
-	service.ID = n
-}
-
-func Name(n string) {
-	service.Name = n
-	service.ID = generateId(n)
-}
-
-func Port(n int) {
-	service.Config.Service.Port = n
-}
-
-func Host(h string) {
-	service.Config.Service.Host = h
-}
-
-// Attaches the gRPC implementation to the service
-func Server(r RegisterImplementation) {
-	service.GRPCImplementation = r
+// Register attaches the gRPC implementation to the service
+func (s *Service) Register(r RegisterImplementation) {
+	s.GRPCImplementation = r
 }
 
 // AddUnaryInterceptor adds a unary interceptor to the RPC server
-func AddUnaryInterceptor(unint grpc.UnaryServerInterceptor) {
-	service.UnaryInts = append(service.UnaryInts, unint)
+func (s *Service) AddUnaryInterceptor(unint grpc.UnaryServerInterceptor) {
+	s.UnaryInts = append(s.UnaryInts, unint)
 }
 
 // AddStreamInterceptor adds a stream interceptor to the RPC server
-func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
-	service.StreamInts = append(service.StreamInts, sint)
+func (s *Service) AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
+	s.StreamInts = append(s.StreamInts, sint)
 }
 
-func Run() {
-	// add to registry
-	if service.Config.UsesRegistry() {
-		rc, rcErr := CreateRegistryClient()
-		if rcErr == nil {
-			rc.Register(service.ID, service.Name, service.Config.Service.Port, nil)
-		} else {
-			logrus.Errorf("Failed to create registry client with address: '%s'. Error: %v", service.Config.RegistryAddress, rcErr)
-		}
+func (s *Service) Run() {
+	if s.Registery != nil {
+		s.Registery.Register(s)
 	}
 
-	// setup pubsub
-	if service.Config.UsesPubSub() {
-		logrus.Infof("Subscribing...")
-		// TODO: make Subscribe return without waiting for signal
-		go pubsub.Subscribe(service.Subscriber)
-	}
+	errChan := make(chan error)
 
-	go func() {
-		err := serveGrpc()
-		if err != nil {
-			logrus.Fatalf("gRPC serve failed. Error: %v", err)
-		}
-	}()
+	go func(e chan<- error) {
+		e <- s.ServeGRPC()
+	}(errChan)
 
-	gracefulShutdown()
-}
-
-func gracefulShutdown() {
-	errChan := make(chan error, 10)
-	signalChan := make(chan os.Signal, 1)
+	signalChan := make(chan os.Signal)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
-	for {
-		select {
-		case err := <-errChan:
-			if err != nil {
-				logrus.Fatalf("error during application: %v", err)
-			}
-		case s := <-signalChan:
-			logrus.Infof("Captured %v. Exiting...", s)
-			shutdown()
-			os.Exit(0)
+	select {
+	case err := <-errChan:
+		if s.Registery != nil {
+			s.Registery.DeRegister(s)
 		}
+
+		logrus.Fatalf("Application startup error: %v", err)
+	case sig := <-signalChan:
+		logrus.Infof("Caught %v, attempting graceful shutdown...", sig)
+		s.shutdown()
+		os.Exit(0)
 	}
 }
 
-func shutdown() {
-	logrus.Infof("Shutting gRPC service '%s'", service.Name)
-	if service.Config.UsesRegistry() {
-		rc, rcErr := CreateRegistryClient()
-		if rcErr == nil {
-			rc.DeRegister(service.Name)
-		}
+func (s *Service) shutdown() {
+	if s.Registery != nil {
+		s.Registery.DeRegister(s)
 	}
 
-	grpcServer.GracefulStop()
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	s.GRPCServer.GracefulStop()
+
+	// 30 seconds is the default grace period in Kubernetes
+	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
 	defer cancel()
-	if err := prometheusServer.Shutdown(ctx); err != nil {
-		logrus.Fatalf("Timeout during shutdown of prometheus server. Error: %v", err)
+	if err := s.PrometheusServer.Shutdown(ctx); err != nil {
+		logrus.Infof("Timeout during shutdown of metrics server. Error: %v", err)
 	}
-
-	if service.Config.UsesPubSub() {
-		logrus.Infof("Unsubscribing...")
-		// TODO: unsubscribe pubsub.Unsubscribe(service.Subscriber)
-		// right now signal takes care of stopping the pubsub.Subscribe goroutine
-	}
-
-	logrus.Infof("Application stopped.")
 }
 
-// Returns a registry client based on the config
-func CreateRegistryClient() (registry.Client, error) {
-	rc, err := registry.NewRegistryClient(service.Config.RegistryProvider, service.Config.RegistryAddress)
-	if err != nil {
-		logrus.Errorf("Failed to create wuth registry address '%s'", service.Config.RegistryAddress)
-		return nil, err
-	}
-
-	return rc, nil
-}
-
-func serveGrpc() error {
+func (s *Service) ServeGRPC() error {
 	var err error
-	serviceListener, err = net.Listen("tcp", service.Address())
+	s.ServiceListener, err = net.Listen("tcp", s.Config.Address())
 	if err != nil {
 		return err
 	}
 
-	logrus.Infof("Serving gRPC on %s", service.Address())
-
-	return createGrpcServer().Serve(serviceListener)
+	logrus.Infof("Serving gRPC on %s", s.Config.Address())
+	return s.createGrpcServer().Serve(s.ServiceListener)
 }
 
-func createGrpcServer() *grpc.Server {
-	// Default interceptors, [prometheus, opentracing]
-	AddUnaryInterceptor(grpc_prometheus.UnaryServerInterceptor)
-	AddStreamInterceptor(grpc_prometheus.StreamServerInterceptor)
-	AddUnaryInterceptor(otgrpc.OpenTracingServerInterceptor(
-		fromenv.Tracer(service.Name)))
+func (s *Service) createGrpcServer() *grpc.Server {
+	s.GRPCOptions = append(s.GRPCOptions, grpc.UnaryInterceptor(
+		grpc_middleware.ChainUnaryServer(service.UnaryInts...)))
 
-	// add recovery later to avoid panics within handlers
-	AddStreamInterceptor(grpc_recovery.StreamServerInterceptor())
-	AddUnaryInterceptor(grpc_recovery.UnaryServerInterceptor())
+	s.GRPCOptions = append(s.GRPCOptions, grpc.StreamInterceptor(
+		grpc_middleware.ChainStreamServer(service.StreamInts...)))
 
-	grpcServer = grpc.NewServer(
-		grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(service.UnaryInts...)),
-		grpc.StreamInterceptor(
-			grpc_middleware.ChainStreamServer(service.StreamInts...)),
+	s.GRPCServer = grpc.NewServer(
+		s.GRPCOptions...,
 	)
 
-	service.GRPCImplementation(grpcServer)
+	s.Register(s.GRPCImplementation)
 
 	grpc_prometheus.EnableHandlingTimeHistogram()
-	grpc_prometheus.Register(grpcServer)
+	grpc_prometheus.Register(s.GRPCServer)
 
-	startPrometheusServer()
-
-	return grpcServer
+	s.startPrometheusServer()
+	return s.GRPCServer
 }
 
-func startPrometheusServer() {
-
-	prometheusServer = &http.Server{Addr: service.Config.Prometheus.Address()}
+func (s *Service) startPrometheusServer() {
+	s.PrometheusServer = &http.Server{Addr: s.Prometheus.Address()}
 
 	http.Handle("/metrics", promhttp.Handler())
-
-	logrus.Infof("Prometheus metrics at http://%s/metrics", service.Config.Prometheus.Address())
+	logrus.Infof("Prometheus metrics at http://%s/metrics", s.Prometheus.Address())
 
 	go func() {
-		if err := prometheusServer.ListenAndServe(); err != nil {
+		if err := s.PrometheusServer.ListenAndServe(); err != nil {
 			// cannot panic, because this probably is an intentional close
 			logrus.Errorf("Prometheus http server: ListenAndServe() error: %s", err)
 		}
 	}()
 }
 
-// NewTestServer is a helper function to create a gRPC server on a unix socket
-// it returns the socket location and a func to call which starts the server
-func NewTestServer(s *grpc.Server) (string, func()) {
-	// Create a temp random unix socket
-	uid, err := uuid.NewV1()
-	if err != nil {
-		panic(err)
-	}
-
-	skt := "/tmp/" + uid.String()
-
-	ln, err := net.Listen("unix", skt)
-	if err != nil {
-		panic(err)
-	}
-
-	return skt, func() {
-		s.Serve(ln)
+func defaultOptions(n string) Service {
+	return Service{
+		ID:                 generateID(n),
+		Name:               n,
+		GRPCImplementation: func(s *grpc.Server) {},
+		UnaryInts: []grpc.UnaryServerInterceptor{
+			grpc_prometheus.UnaryServerInterceptor,
+			grpc_recovery.UnaryServerInterceptor(),
+			otgrpc.OpenTracingServerInterceptor(
+				fromenv.Tracer(n)),
+		},
+		StreamInts: []grpc.StreamServerInterceptor{
+			grpc_prometheus.StreamServerInterceptor,
+			grpc_recovery.StreamServerInterceptor(),
+		},
 	}
 }
 
-// TestConn is a connection that connects to a socket based connection
-func TestConn(addr string) *grpc.ClientConn {
-	conn, err := grpc.Dial(
-		addr,
-		grpc.WithDialer(func(addr string, d time.Duration) (net.Conn, error) {
-			return net.Dial("unix", addr)
-		}),
-		grpc.WithInsecure(),
-		grpc.WithTimeout(1*time.Second),
-		grpc.WithBlock(),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return conn
+func generateID(n string) string {
+	uid, _ := uuid.NewV4()
+	return n + "-" + uid.String()
 }
