@@ -11,16 +11,5 @@ import (
 )
 
 func main() {
-	lile.Name("{{ .Name }}")
-	lile.Server(func(g *grpc.Server) {
-	      {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, &server.{{ .CamelCaseName }}Server{})
-	})
-	lile.Subscriber(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
-
-	pubsub.SetClient(&pubsub.Client{
-		ServiceName: lile.GlobalService().Name,
-		Provider:    fromenv.PubSubProvider(),
-	})
-
 	cmd.Execute()
 }

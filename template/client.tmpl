@@ -3,11 +3,10 @@ package {{ .SnakeCaseName }}
 import (
     "fmt"
     "os"
-	"sync"
+    "sync"
 
-    "github.com/nadilas/lile/registry"
     "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
+    "google.golang.org/grpc"
 )
 
 const serviceName = "{{ .Name }}"
@@ -25,16 +24,7 @@ func Get{{ .CamelCaseName }}Client() ({{ .CamelCaseName }}Client, error) {
 		return Client, nil
 	}
 
-	logrus.Infof("Creating %s gRPC client", serviceName)
-    rc, _ := registry.NewRegistryClient("consul", os.Getenv("REGISTRY_ADDRESS"))
-    entries, _, err := rc.Service(serviceName, "", nil)
-	if err != nil {
-		logrus.Fatalf("Failed to find service '%s'. error: %v", serviceName, err)
-		os.Exit(1)
-	}
-	srv := entries[0] // FIXME: change to LB, now: simple first pick
-	s := fmt.Sprintf("%s:%d", srv.Service.Address, srv.Service.Port)
-	conn, err := grpc.Dial(s, grpc.DialOption(grpc.WithInsecure()))
+        conn, err := grpc.Dial("{{ .SnakeCaseName }}:80", grpc.DialOption(grpc.WithInsecure()))
 	if err != nil {
 		return nil, err
 	}

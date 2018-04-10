@@ -83,16 +83,22 @@ func BaseCommand(serviceName, shortDescription string) *cobra.Command {
 
 // GlobalService returns the global service
 func GlobalService() *Service {
-	return &service
+	return service
+}
+
+// SetGlobalService returns the global service
+func SetGlobalService(s *Service) *Service {
+	service = s
+	return s
 }
 
 // NewService creates a lile service with default options
-func NewService(name string) Service {
+func NewService(name string) *Service {
 	return defaultOptions(name)
 }
 
 // Register attaches the gRPC implementation to the service
-func (s *Service) Register(r RegisterImplementation) {
+func (s *Service) Register(r func(s *grpc.Server)) {
 	s.GRPCImplementation = r
 }
 
@@ -194,8 +200,8 @@ func (s *Service) startPrometheusServer() {
 	}()
 }
 
-func defaultOptions(n string) Service {
-	return Service{
+func defaultOptions(n string) *Service {
+	return &Service{
 		ID:                 generateID(n),
 		Name:               n,
 		GRPCImplementation: func(s *grpc.Server) {},

@@ -10,7 +10,13 @@ var upCmd = &cobra.Command{
 	Use:   "up",
 	Short: "up runs both RPC service",
 	Run: func(cmd *cobra.Command, args []string) {
-		lile.Run()
+            s := lile.NewService("{{ .Name }}")
+
+            s.Register(func(g *grpc.Server) {
+              {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, &server.{{ .CamelCaseName }}Server{})
+            })
+
+            s.Run()
 	},
 }
 
