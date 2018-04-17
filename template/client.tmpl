@@ -2,10 +2,11 @@ package {{ .SnakeCaseName }}
 
 import (
     "fmt"
-    "os"
     "sync"
 
-    "github.com/sirupsen/logrus"
+    "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+    "github.com/lileio/lile"
+    opentracing "github.com/opentracing/opentracing-go"
     "google.golang.org/grpc"
 )
 
@@ -16,20 +17,40 @@ var (
 	Client {{ .CamelCaseName }}Client
 )
 
-func Get{{ .CamelCaseName }}Client() ({{ .CamelCaseName }}Client, error) {
+func Get{{ .CamelCaseName }}Client(url string) {{ .CamelCaseName }}Client {
 	cm.Lock()
 	defer cm.Unlock()
 
 	if Client != nil {
-		return Client, nil
+		return Client
 	}
 
-        conn, err := grpc.Dial("{{ .SnakeCaseName }}:80", grpc.DialOption(grpc.WithInsecure()))
-	if err != nil {
-		return nil, err
+	serviceURL := "{{ .SnakeCaseName }}:80"
+	if url != "" {
+		serviceURL = url
 	}
+
+	if lile.GlobalService() != nil && lile.GlobalService().Registery != nil {
+		registeryURL, err := lile.GlobalService().Registery.Get("{{ .SnakeCaseName }}")
+		if err != nil {
+			fmt.Printf("lile: error contacting Registery for service %s. err: %s \n", "{{ .SnakeCaseName }}", err.Error())
+		}
+
+		if registeryURL != "" {
+			serviceURL = registeryURL
+		}
+	}
+
+	// We don't need to error here, as this creates a pool and connections
+	// will happen later
+	conn, _ := grpc.Dial(
+		serviceURL,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(
+			otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer()),
+		))
 
 	cli := New{{ .CamelCaseName }}Client(conn)
 	Client = cli
-	return cli, nil
+	return cli
 }

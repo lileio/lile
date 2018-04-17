@@ -1,9 +1,11 @@
 package cmd
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/lileio/lile"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"{{ .RelDir }}"
+	"{{ .RelDir }}/server"
 )
 
 var upCmd = &cobra.Command{

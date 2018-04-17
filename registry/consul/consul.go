@@ -14,7 +14,7 @@ type registryClient struct {
 	address string
 }
 
-//NewConsul returns a Client interface for given consul address
+// NewClient returns a Client interface for given consul address
 func NewClient(addr string) (*registryClient, error) {
 	if len(addr) == 0 {
 		addr = CONSUL_DEFAULT_ADDRESS

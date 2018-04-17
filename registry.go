@@ -6,4 +6,6 @@ type Registery interface {
 	Register(s *Service) error
 	// Deregister a service
 	DeRegister(s *Service) error
+	// Get a service by name
+	Get(name string) (string, error)
 }

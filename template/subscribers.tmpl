@@ -1,15 +1,8 @@
 package subscribers
 
 import (
-	"context"
-	"time"
-
-    "github.com/gogo/protobuf/proto"
     "github.com/lileio/pubsub"
 )
-
-// See https://godoc.org/github.com/lileio/pubsub#Handler for an example
-// of what an subscriber handler should look like
 
 type {{ .CamelCaseName }}ServiceSubscriber struct {}
 
@@ -24,7 +17,6 @@ func (s *{{ .CamelCaseName }}ServiceSubscriber) Setup(c *pubsub.Client) {
         // })
 }
 
-func (s *{{ .CamelCaseName }}ServiceSubscriber) SomeMethod(ctx context.Context, req *proto.Message, msg *pubsub.Msg) error {
-    // TODO: req type must be set to a valid service proto message
-    return nil
-}
+// func (s *{{ .CamelCaseName }}ServiceSubscriber) SomeMethod(ctx context.Context, req *proto.Message, _ *pubsub.Msg) error {
+//    return nil
+// }
