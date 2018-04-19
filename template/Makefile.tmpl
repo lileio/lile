@@ -9,7 +9,7 @@ proto:
 	protoc -I . {{.Name}}.proto --lile-server_out=. --go_out=plugins=grpc:${GOPATH}/src
 
 build: proto
-	go build -o bin/{{.RelativeName}} {{.RelativeName}}/main.go
+	go build -o build/{{.RelativeName}} {{.RelativeName}}/main.go
     
 test:
 	go test -v ./... -cover
