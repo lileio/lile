@@ -34,9 +34,13 @@ type Service struct {
 }
 
 func defaultOptions(n string) Service {
+	port := ":8000"
+	if p := os.Getenv("PORT"); p != "" {
+		port = p
+	}
 	return Service{
 		Name:               n,
-		Port:               ":8000",
+		Port:               port,
 		GRPCImplementation: func(s *grpc.Server) {},
 	}
 }
