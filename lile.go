@@ -97,6 +97,21 @@ func NewService(name string) *Service {
 	return defaultOptions(name)
 }
 
+// URLForService returns a service URL via a registry or a simple DNS name
+// if not available via the registery
+func (s *Service) URLForService(name string) string {
+	if s.Registery != nil {
+		registeryURL, err := s.Registery.Get("dashy-checkys")
+		if err != nil {
+			fmt.Printf("lile: error contacting Registery for service %s. err: %s \n", name, err.Error())
+		}
+
+		return registeryURL
+	}
+
+	return name + ":80"
+}
+
 // Register attaches the gRPC implementation to the service
 func (s *Service) Register(r func(s *grpc.Server)) {
 	s.GRPCImplementation = r

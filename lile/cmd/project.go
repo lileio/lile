@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/serenize/snaker"
+	"github.com/iancoleman/strcase"
 )
 
 type project struct {
@@ -63,12 +63,17 @@ func (p project) write(templatePath string) error {
 
 // CamelCaseName returns a CamelCased name of the service
 func (p project) CamelCaseName() string {
-	return snaker.SnakeToCamel(p.Name)
+	return strcase.ToCamel(p.Name)
 }
 
 // SnakeCaseName returns a snake_cased_type name of the service
 func (p project) SnakeCaseName() string {
-	return snaker.CamelToSnake(p.Name)
+	return strings.Replace(strcase.ToSnake(p.Name), "-", "_", -1)
+}
+
+// DNSName returns a snake-cased-type name that be used as a URL or packageName
+func (p project) DNSName() string {
+	return strings.Replace(strcase.ToSnake(p.Name), "_", "-", -1)
 }
 
 // Copied and re-worked from
@@ -89,7 +94,6 @@ func projectPath(inputPath string) string {
 	srcPath := srcPath()
 
 	// if provided, inspect for logical locations
-
 	if strings.ContainsRune(inputPath, os.PathSeparator) {
 		if filepath.IsAbs(inputPath) || filepath.HasPrefix(inputPath, string(os.PathSeparator)) {
 			// if Absolute, use it

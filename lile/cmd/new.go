@@ -35,9 +35,11 @@ func init() {
 		}
 		gopath = strings.TrimSpace(string(b))
 	}
+
 	if paths := filepath.SplitList(gopath); len(paths) > 0 {
 		gopath = paths[0]
 	}
+
 	templatePath = filepath.Clean(filepath.Join(gopath, "/src/github.com/lileio/lile/template"))
 	RootCmd.AddCommand(newCmd)
 }
@@ -87,6 +89,6 @@ func er(err error) {
 			color.RedString("[ERROR]"),
 			err.Error(),
 		)
-		os.Exit(-1)
+		panic(err)
 	}
 }

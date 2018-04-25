@@ -10,14 +10,12 @@ import (
     "google.golang.org/grpc"
 )
 
-const serviceName = "{{ .Name }}"
-
 var (
 	cm = &sync.Mutex{}
 	Client {{ .CamelCaseName }}Client
 )
 
-func Get{{ .CamelCaseName }}Client(url string) {{ .CamelCaseName }}Client {
+func Get{{ .CamelCaseName }}Client() {{ .CamelCaseName }}Client {
 	cm.Lock()
 	defer cm.Unlock()
 
@@ -25,21 +23,7 @@ func Get{{ .CamelCaseName }}Client(url string) {{ .CamelCaseName }}Client {
 		return Client
 	}
 
-	serviceURL := "{{ .SnakeCaseName }}:80"
-	if url != "" {
-		serviceURL = url
-	}
-
-	if lile.GlobalService() != nil && lile.GlobalService().Registery != nil {
-		registeryURL, err := lile.GlobalService().Registery.Get("{{ .SnakeCaseName }}")
-		if err != nil {
-			fmt.Printf("lile: error contacting Registery for service %s. err: %s \n", "{{ .SnakeCaseName }}", err.Error())
-		}
-
-		if registeryURL != "" {
-			serviceURL = registeryURL
-		}
-	}
+        serviceURL := lile.GlobalService().URLForService({{ .DNSName }})
 
 	// We don't need to error here, as this creates a pool and connections
 	// will happen later

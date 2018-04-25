@@ -170,7 +170,9 @@ func toGoType(imports []goimport, t string) string {
 	t = strings.Trim(t, ".")
 	for _, i := range imports {
 		if strings.Contains(t, i.Package) {
-			return strings.Replace(t, i.Package, i.GoType, 1)
+			s := strings.Replace(t, i.Package, i.GoType, 1)
+			s = strings.Replace(s, "-", "_", -1)
+			return s
 		}
 	}
 
@@ -254,11 +256,14 @@ func render(path, tmpl string, m grpcMethod) (*plugin.CodeGeneratorResponse_File
 	var out bytes.Buffer
 	err = t.Execute(&out, m)
 	if err != nil {
+		log.Printf("%s couldn't create template %s, %s", color.RedString("[ERROR]"), tmpl, err)
 		return nil, err
 	}
 
 	b, err := format.Source(out.Bytes())
 	if err != nil {
+		log.Printf(string(out.Bytes()))
+		log.Printf("\n%s couldn't format Go file %s, %s", color.RedString("[ERROR]"), tmpl, err)
 		return nil, err
 	}
 
