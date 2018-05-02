@@ -72,8 +72,6 @@ func NewService(n string) *Service {
 		UnaryInts: []grpc.UnaryServerInterceptor{
 			grpc_prometheus.UnaryServerInterceptor,
 			grpc_recovery.UnaryServerInterceptor(),
-			otgrpc.OpenTracingServerInterceptor(
-				fromenv.Tracer(n)),
 		},
 		StreamInts: []grpc.StreamServerInterceptor{
 			grpc_prometheus.StreamServerInterceptor,
@@ -91,6 +89,8 @@ func GlobalService() *Service {
 func Name(n string) {
 	service.ID = generateID(n)
 	service.Name = n
+	AddUnaryInterceptor(otgrpc.OpenTracingServerInterceptor(
+		fromenv.Tracer(n)))
 }
 
 // Server attaches the gRPC implementation to the service
