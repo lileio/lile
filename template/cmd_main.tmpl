@@ -1,29 +1,39 @@
 package main
 
 import (
-        _ "net/http/pprof"
+	"runtime"
+	_ "net/http/pprof"
 
-        "github.com/lileio/lile"
-        "github.com/lileio/logr"
+	"github.com/lileio/lile"
+	"github.com/lileio/logr"
 	"github.com/lileio/fromenv"
 	"github.com/lileio/pubsub"
 	"github.com/lileio/pubsub/middleware/defaults"
-        "google.golang.org/grpc"
-        "{{ .RelDir }}"
-        "{{ .RelDir }}/server"
+	"github.com/mattn/go-colorable"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"{{ .RelDir }}"
+	"{{ .RelDir }}/server"
 	"{{ .RelDir }}/{{ .Name }}/cmd"
 )
 
+func init() {
+	if runtime.GOOS == "windows" {
+		logrus.SetOutput(colorable.NewColorableStdout())
+		logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
+	}
+}
+
 func main() {
-        logr.SetLevelFromEnv()
+	logr.SetLevelFromEnv()
 
-        s := &server.{{ .CamelCaseName }}Server{}
+	s := &server.{{ .CamelCaseName }}Server{}
 
-        lile.Name("{{ .Name }}")
+	lile.Name("{{ .Name }}")
 
-        lile.Server(func(g *grpc.Server) {
-          {{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
-        })
+	lile.Server(func(g *grpc.Server) {
+		{{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
+	})
 
 	pubsub.SetClient(&pubsub.Client{
 		ServiceName: lile.GlobalService().Name,

@@ -7,12 +7,15 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
+	"sync"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/fromenv"
+	"github.com/mattn/go-colorable"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -20,6 +23,7 @@ import (
 
 var (
 	service = NewService("lile")
+	once    sync.Once
 )
 
 type RegisterImplementation func(s *grpc.Server)
@@ -63,6 +67,12 @@ type Service struct {
 
 // NewService creates a new service with a given name
 func NewService(n string) *Service {
+	once.Do(func() {
+		if runtime.GOOS == "windows" {
+			logrus.SetOutput(colorable.NewColorableStdout())
+			logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
+		}
+	})
 	return &Service{
 		ID:                 generateID(n),
 		Name:               n,
