@@ -10,7 +10,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/lileio/lile/fromenv"
+	"github.com/lileio/fromenv"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"

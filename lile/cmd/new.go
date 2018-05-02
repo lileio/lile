@@ -46,7 +46,7 @@ func init() {
 
 func new(cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
-		fmt.Printf("You must supply a path for the service, e.g lile new lile/user_service\n")
+		fmt.Printf("You must supply a path for the service, e.g lile new lile/users\n")
 		return
 	}
 

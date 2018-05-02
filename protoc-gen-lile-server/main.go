@@ -20,7 +20,6 @@ import (
 	"github.com/xtgo/set"
 
 	"github.com/fatih/color"
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
@@ -302,9 +301,9 @@ func emitError(err error) {
 func emitResp(resp *plugin.CodeGeneratorResponse) {
 	buf, err := proto.Marshal(resp)
 	if err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
 	if _, err := output.Write(buf); err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
 }
