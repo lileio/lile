@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"html/template"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/xlab/treeprint"
 )
@@ -62,11 +63,14 @@ func (f *folder) render(templatePath string, p project) error {
 			var out bytes.Buffer
 			err = t.Execute(&out, p)
 			if err != nil {
+				log.Printf("Could not process template %s\n", v)
 				return err
 			}
 
 			b, err := format.Source(out.Bytes())
 			if err != nil {
+				fmt.Print(string(out.Bytes()))
+				log.Printf("\nCould not format Go file %s\n", v)
 				return err
 			}
 

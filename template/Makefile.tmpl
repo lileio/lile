@@ -2,7 +2,7 @@
 
 GOPATH:=$(shell go env GOPATH)
 
-.PHONY: proto test docker
+.PHONY: proto test
 
 proto:
 	go get github.com/golang/protobuf/protoc-gen-go
@@ -12,7 +12,5 @@ build: proto
 	go build -o build/{{.RelativeName}} {{.RelativeName}}/main.go
     
 test:
-	go test -v ./... -cover
-
-docker:
-	docker build . -t {{.RelativeName}}:latest
+	@go get github.com/rakyll/gotest
+	gotest -p 1 -v ./...

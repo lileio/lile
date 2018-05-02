@@ -4,15 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/lileio/lile"
 )
 
 var cfgFile string
 
-var RootCmd = &cobra.Command{
-	Use:   "{{ .Name }}",
-	Short: "A gRPC based service",
-}
+var RootCmd = lile.BaseCommand("{{ .Name }}", "A gRPC based service")
 
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {

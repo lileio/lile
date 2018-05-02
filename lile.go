@@ -3,59 +3,99 @@
 package lile
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"os"
-	"time"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/lileio/lile/fromenv"
+	"github.com/lileio/fromenv"
 	"github.com/prometheus/client_golang/prometheus"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
-var service = NewService("lile")
+var (
+	service = NewService("lile")
+)
 
-type registerImplementation func(s *grpc.Server)
+type RegisterImplementation func(s *grpc.Server)
 
-// Service is a grpc compatible server with extra features
+// ServerConfig is a generic server configuration
+type ServerConfig struct {
+	Port int
+	Host string
+}
+
+func (c *ServerConfig) Address() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+}
+
+// Service is a gRPC based server with extra features
 type Service struct {
+	ID   string
 	Name string
-	Port string
+
 	// Interceptors
 	UnaryInts  []grpc.UnaryServerInterceptor
 	StreamInts []grpc.StreamServerInterceptor
+
 	// The RPC server implementation
-	GRPCImplementation registerImplementation
+	GRPCImplementation RegisterImplementation
+	GRPCOptions        []grpc.ServerOption
+
+	// gRPC and Prometheus endpoints
+	Config           ServerConfig
+	PrometheusConfig ServerConfig
+
+	// Registery allows Lile to work with external registeries like
+	// consul, zookeeper or similar
+	Registery Registery
+
+	// Private utils, exposed so they can be useful if needed
+	ServiceListener  net.Listener
+	GRPCServer       *grpc.Server
+	PrometheusServer *http.Server
 }
 
-func defaultOptions(n string) Service {
-	return Service{
+// NewService creates a new service with a given name
+func NewService(n string) *Service {
+	return &Service{
+		ID:                 generateID(n),
 		Name:               n,
-		Port:               ":8000",
+		Config:             ServerConfig{Host: "0.0.0.0", Port: 8000},
+		PrometheusConfig:   ServerConfig{Host: "0.0.0.0", Port: 9000},
 		GRPCImplementation: func(s *grpc.Server) {},
+		UnaryInts: []grpc.UnaryServerInterceptor{
+			grpc_prometheus.UnaryServerInterceptor,
+			grpc_recovery.UnaryServerInterceptor(),
+			otgrpc.OpenTracingServerInterceptor(
+				fromenv.Tracer(n)),
+		},
+		StreamInts: []grpc.StreamServerInterceptor{
+			grpc_prometheus.StreamServerInterceptor,
+			grpc_recovery.StreamServerInterceptor(),
+		},
 	}
 }
 
-// NewService creates a lile service with N options
-func NewService(name string) Service {
-	return defaultOptions(name)
-}
-
+// GlobalService returns the global service
 func GlobalService() *Service {
-	return &service
+	return service
 }
 
+// Name sets the name for the service
 func Name(n string) {
+	service.ID = generateID(n)
 	service.Name = n
 }
 
-func Port(n string) {
-	service.Port = n
+// Server attaches the gRPC implementation to the service
+func Server(r func(s *grpc.Server)) {
+	service.GRPCImplementation = r
 }
 
 // AddUnaryInterceptor adds a unary interceptor to the RPC server
@@ -68,18 +108,19 @@ func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
 	service.StreamInts = append(service.StreamInts, sint)
 }
 
-func Server(r registerImplementation) {
-	service.GRPCImplementation = r
-}
+// URLForService returns a service URL via a registry or a simple DNS name
+// if not available via the registery
+func URLForService(name string) string {
+	if service.Registery != nil {
+		registeryURL, err := service.Registery.Get(name)
+		if err != nil {
+			fmt.Printf("lile: error contacting registery for service %s. err: %s \n", name, err.Error())
+		}
 
-func Serve() error {
-	lis, err := net.Listen("tcp", service.Port)
-	if err != nil {
-		return err
+		return registeryURL
 	}
 
-	logrus.Infof("Serving gRPC on %s", service.Port)
-	return CreateServer().Serve(lis)
+	return name + ":80"
 }
 
 func CreateServer() *grpc.Server {
@@ -109,59 +150,4 @@ func CreateServer() *grpc.Server {
 	go http.ListenAndServe(":"+port, nil)
 
 	return gs
-}
-
-//   Creates a server listener dependent on the underlying platform. Windows
-// hosts will have a Windows Named pipe, anything else gets a UNIX socket
-func getTestServerTransport()(string, net.Listener, error) {
-	var uniqueAddress string
-
-	// Create a random string for part of the address
-	uid, err := uuid.NewV1()
-	if err != nil {
-		return "", nil, err
-	}
-
-	uniqueAddress = formatPlatformTestSeverAddress(uid.String())
-
-	serverListener, err := getTestServerListener(uniqueAddress)
-	if err != nil {
-		return "", nil, err
-	}
-
-	return uniqueAddress, serverListener, nil
-}
-
-//   NewTestServer is a helper function to create a gRPC server on a non-network
-// socket and it returns the socket location and a func to call which starts
-// the server
-func NewTestServer(s *grpc.Server) (string, func()) {
-	socketAddress, listener, err := getTestServerTransport()
-	if err != nil {
-		panic(err)
-	}
-
-	return socketAddress, func() {
-		s.Serve(listener)
-	}
-}
-
-// TestConn is a connection that connects to a socket based connection
-func TestConn(addr string) *grpc.ClientConn {
-
-	conn, err := grpc.Dial(
-		addr,
-		grpc.WithDialer(func(addr string, d time.Duration) (net.Conn, error) {
-			return dialTestServer(addr)
-		}),
-		grpc.WithInsecure(),
-		grpc.WithTimeout(1*time.Second),
-		grpc.WithBlock(),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return conn
 }

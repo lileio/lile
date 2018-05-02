@@ -1,23 +1,33 @@
 package cmd
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/lileio/lile"
+        "os"
+	"os/signal"
+	"syscall"
+
 	"github.com/lileio/pubsub"
+	"github.com/lileio/lile"
 	"github.com/spf13/cobra"
-	"{{ .RelDir }}/subscribers"
+        "{{ .RelDir }}/subscribers"
 )
 
 var upCmd = &cobra.Command{
 	Use:   "up",
-	Short: "up runs both RPC and pubub subscribers",
+	Short: "up runs both RPC service",
 	Run: func(cmd *cobra.Command, args []string) {
-		go func() {
-			logrus.Fatal(lile.Serve())
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
+		go func() {
+			lile.Run()
+		}()
+		go func() {
+			pubsub.Subscribe(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
 		}()
 
-		pubsub.Subscribe(&subscribers.{{ .CamelCaseName }}ServiceSubscriber{})
+		<-c
+		lile.Shutdown()
+		pubsub.Shutdown()
 	},
 }
 

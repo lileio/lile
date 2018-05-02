@@ -2,14 +2,14 @@ syntax = "proto3";
 option go_package = "{{ .RelDir }}";
 package {{ .SnakeCaseName }};
 
-message Request {
+message GetRequest {
   string id = 1;
 }
 
-message Response {
+message GetResponse {
   string id = 1;
 }
 
 service {{ .CamelCaseName }} {
-  rpc Read (Request) returns (Response) {}
+  rpc Get(GetRequest) returns (GetResponse) {}
 }
