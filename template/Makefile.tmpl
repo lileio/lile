@@ -8,6 +8,9 @@ proto:
 	go get github.com/golang/protobuf/protoc-gen-go
 	protoc -I . {{.Name}}.proto --lile-server_out=. --go_out=plugins=grpc:${GOPATH}/src
 
+build: proto
+	go build -o build/{{.RelativeName}} {{.RelativeName}}/main.go
+    
 test:
 	@go get github.com/rakyll/gotest
 	gotest -p 1 -v ./...

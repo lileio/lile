@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/fromenv"
-	"github.com/satori/go.uuid"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -120,7 +123,31 @@ func URLForService(name string) string {
 	return name + ":80"
 }
 
-func generateID(n string) string {
-	uid, _ := uuid.NewV4()
-	return n + "-" + uid.String()
+func CreateServer() *grpc.Server {
+	// Default interceptors, [prometheus, opentracing]
+	AddUnaryInterceptor(grpc_prometheus.UnaryServerInterceptor)
+	AddStreamInterceptor(grpc_prometheus.StreamServerInterceptor)
+	AddUnaryInterceptor(otgrpc.OpenTracingServerInterceptor(
+		fromenv.Tracer(service.Name)))
+
+	gs := grpc.NewServer(
+		grpc.UnaryInterceptor(
+			grpc_middleware.ChainUnaryServer(service.UnaryInts...)),
+		grpc.StreamInterceptor(
+			grpc_middleware.ChainStreamServer(service.StreamInts...)),
+	)
+
+	service.GRPCImplementation(gs)
+
+	grpc_prometheus.EnableHandlingTimeHistogram()
+	grpc_prometheus.Register(gs)
+	http.Handle("/metrics", prometheus.Handler())
+	logrus.Infof("Prometheus metrics at :9000/metrics")
+	port := "9000"
+	if p := os.Getenv("PROMETHEUS_PORT"); p != "" {
+		port = p
+	}
+	go http.ListenAndServe(":"+port, nil)
+
+	return gs
 }
