@@ -12,21 +12,24 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/fromenv"
 	"github.com/satori/go.uuid"
-	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
 var (
-	service        = NewService("lile")
-	grpcHost       string
-	grpcPort       int
-	prometheusHost string
-	prometheusPort int
-
-	defaultHost           = "0.0.0.0"
-	defaultGRPCPort       = 8000
-	defaultPrometheusPort = 9000
+	service = NewService("lile")
 )
+
+type RegisterImplementation func(s *grpc.Server)
+
+// ServerConfig is a generic server configuration
+type ServerConfig struct {
+	Port int
+	Host string
+}
+
+func (c *ServerConfig) Address() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+}
 
 // Service is a gRPC based server with extra features
 type Service struct {
@@ -42,8 +45,8 @@ type Service struct {
 	GRPCOptions        []grpc.ServerOption
 
 	// gRPC and Prometheus endpoints
-	Config     ServerConfig
-	Prometheus ServerConfig
+	Config           ServerConfig
+	PrometheusConfig ServerConfig
 
 	// Registery allows Lile to work with external registeries like
 	// consul, zookeeper or similar
@@ -55,22 +58,13 @@ type Service struct {
 	PrometheusServer *http.Server
 }
 
-type RegisterImplementation func(s *grpc.Server)
-
-// ServerConfig is a generic server configuration
-type ServerConfig struct {
-	Port int
-	Host string
-}
-
-func (c *ServerConfig) Address() string {
-	return fmt.Sprintf("%s:%d", c.Host, c.Port)
-}
-
-func defaultOptions(n string) *Service {
+// NewService creates a new service with a given name
+func NewService(n string) *Service {
 	return &Service{
 		ID:                 generateID(n),
 		Name:               n,
+		Config:             ServerConfig{Host: "0.0.0.0", Port: 8000},
+		PrometheusConfig:   ServerConfig{Host: "0.0.0.0", Port: 9000},
 		GRPCImplementation: func(s *grpc.Server) {},
 		UnaryInts: []grpc.UnaryServerInterceptor{
 			grpc_prometheus.UnaryServerInterceptor,
@@ -85,63 +79,39 @@ func defaultOptions(n string) *Service {
 	}
 }
 
-func generateID(n string) string {
-	uid, _ := uuid.NewV4()
-	return n + "-" + uid.String()
-}
-
-func BaseCommand(serviceName, shortDescription string) *cobra.Command {
-	command := &cobra.Command{
-		Use:   serviceName,
-		Short: shortDescription,
-	}
-
-	command.PersistentFlags().StringVar(&grpcHost, "grpc_host", "", "gRPC service hostname")
-	command.PersistentFlags().IntVar(&grpcPort, "grpc_port", 0, "gRPC port")
-	command.PersistentFlags().StringVar(&prometheusHost, "prometheus_host", "", "Prometheus metrics hostname")
-	command.PersistentFlags().IntVar(&prometheusPort, "prometheus_port", 0, "Prometheus metrics port")
-
-	return command
-}
-
 // GlobalService returns the global service
 func GlobalService() *Service {
 	return service
 }
 
-// SetGlobalService returns the global service
-func SetGlobalService(s *Service) *Service {
-	service = s
-	return s
+// Name sets the name for the service
+func Name(n string) {
+	service.ID = generateID(n)
+	service.Name = n
 }
 
-// NewService creates a lile service with default options
-func NewService(name string) *Service {
-	return defaultOptions(name)
-}
-
-// Register attaches the gRPC implementation to the service
-func (s *Service) Register(r func(s *grpc.Server)) {
-	s.GRPCImplementation = r
+// Server attaches the gRPC implementation to the service
+func Server(r func(s *grpc.Server)) {
+	service.GRPCImplementation = r
 }
 
 // AddUnaryInterceptor adds a unary interceptor to the RPC server
-func (s *Service) AddUnaryInterceptor(unint grpc.UnaryServerInterceptor) {
-	s.UnaryInts = append(s.UnaryInts, unint)
+func AddUnaryInterceptor(unint grpc.UnaryServerInterceptor) {
+	service.UnaryInts = append(service.UnaryInts, unint)
 }
 
 // AddStreamInterceptor adds a stream interceptor to the RPC server
-func (s *Service) AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
-	s.StreamInts = append(s.StreamInts, sint)
+func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
+	service.StreamInts = append(service.StreamInts, sint)
 }
 
 // URLForService returns a service URL via a registry or a simple DNS name
 // if not available via the registery
-func (s *Service) URLForService(name string) string {
-	if s.Registery != nil {
-		registeryURL, err := s.Registery.Get(name)
+func URLForService(name string) string {
+	if service.Registery != nil {
+		registeryURL, err := service.Registery.Get(name)
 		if err != nil {
-			fmt.Printf("lile: error contacting Registery for service %s. err: %s \n", name, err.Error())
+			fmt.Printf("lile: error contacting registery for service %s. err: %s \n", name, err.Error())
 		}
 
 		return registeryURL
@@ -150,14 +120,7 @@ func (s *Service) URLForService(name string) string {
 	return name + ":80"
 }
 
-func (s *Service) setConfigFromFlags() {
-	if grpcHost == "" {
-		s.Config.Host = defaultHost
-		s.Config.Port = defaultGRPCPort
-	}
-
-	if prometheusHost == "" {
-		s.Prometheus.Host = defaultHost
-		s.Prometheus.Port = defaultPrometheusPort
-	}
+func generateID(n string) string {
+	uid, _ := uuid.NewV4()
+	return n + "-" + uid.String()
 }

@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"html/template"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/xlab/treeprint"
 )

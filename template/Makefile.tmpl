@@ -9,5 +9,5 @@ proto:
 	protoc -I . {{.Name}}.proto --lile-server_out=. --go_out=plugins=grpc:${GOPATH}/src
 
 test:
-	@go get -u github.com/rakyll/gotest
+	@go get github.com/rakyll/gotest
 	gotest -p 1 -v ./...

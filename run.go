@@ -4,9 +4,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -17,59 +14,67 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *Service) Run() {
-	s.setConfigFromFlags()
-
-	if s.Registery != nil {
-		s.Registery.Register(s)
+// Run is a blocking cmd to run the gRPC and metrics server.
+// You should listen to os signals and call Shutdown() if you
+// want a graceful shutdown or want to handle other goroutines
+func Run() error {
+	if service.Registery != nil {
+		service.Registery.Register(service)
 	}
 
-	errChan := make(chan error)
+	// Start a metrics server in the background
+	startPrometheusServer()
 
-	go func(e chan<- error) {
-		e <- s.ServeGRPC()
-	}(errChan)
-
-	signalChan := make(chan os.Signal)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-
-	select {
-	case err := <-errChan:
-		if s.Registery != nil {
-			s.Registery.DeRegister(s)
-		}
-
-		logrus.Fatalf("Application error: %v", err)
-	case sig := <-signalChan:
-		logrus.Infof("Caught %v, attempting graceful shutdown...", sig)
-		s.shutdown()
-		os.Exit(0)
+	// Create and then server a gRPC server
+	err := ServeGRPC()
+	if service.Registery != nil {
+		service.Registery.DeRegister(service)
 	}
+	return err
 }
 
-func (s *Service) ServeGRPC() error {
+// ServeGRPC creates and runs a blocking gRPC server
+func ServeGRPC() error {
 	var err error
-	s.ServiceListener, err = net.Listen("tcp", s.Config.Address())
+	service.ServiceListener, err = net.Listen("tcp", service.Config.Address())
 	if err != nil {
 		return err
 	}
 
-	logrus.Infof("Serving gRPC on %s", s.Config.Address())
-	return s.createGrpcServer().Serve(s.ServiceListener)
+	logrus.Infof("Serving gRPC on %s", service.Config.Address())
+	return createGrpcServer().Serve(service.ServiceListener)
 }
 
-func (s *Service) createGrpcServer() *grpc.Server {
-	s.GRPCOptions = append(s.GRPCOptions, grpc.UnaryInterceptor(
+// Shutdown gracefully shuts down the gRPC and metrics servers
+func Shutdown() {
+	logrus.Infof("lile: Gracefully shutting down gRPC and Prometheus")
+
+	if service.Registery != nil {
+		service.Registery.DeRegister(service)
+	}
+
+	service.GRPCServer.GracefulStop()
+
+	// 30 seconds is the default grace period in Kubernetes
+	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
+	defer cancel()
+	if err := service.PrometheusServer.Shutdown(ctx); err != nil {
+		logrus.Infof("Timeout during shutdown of metrics server. Error: %v", err)
+	}
+}
+
+func createGrpcServer() *grpc.Server {
+	service.GRPCOptions = append(service.GRPCOptions, grpc.UnaryInterceptor(
 		grpc_middleware.ChainUnaryServer(service.UnaryInts...)))
 
-	s.GRPCOptions = append(s.GRPCOptions, grpc.StreamInterceptor(
+	service.GRPCOptions = append(service.GRPCOptions, grpc.StreamInterceptor(
 		grpc_middleware.ChainStreamServer(service.StreamInts...)))
 
-	s.GRPCServer = grpc.NewServer(
-		s.GRPCOptions...,
+	service.GRPCServer = grpc.NewServer(
+		service.GRPCOptions...,
 	)
 
-	s.Register(s.GRPCImplementation)
+	service.GRPCImplementation(service.GRPCServer)
 
 	grpc_prometheus.EnableHandlingTimeHistogram(
 		func(opt *prometheus.HistogramOpts) {
@@ -77,37 +82,20 @@ func (s *Service) createGrpcServer() *grpc.Server {
 		},
 	)
 
-	grpc_prometheus.Register(s.GRPCServer)
-
-	s.startPrometheusServer()
-	return s.GRPCServer
+	grpc_prometheus.Register(service.GRPCServer)
+	return service.GRPCServer
 }
 
-func (s *Service) startPrometheusServer() {
-	s.PrometheusServer = &http.Server{Addr: s.Prometheus.Address()}
+func startPrometheusServer() {
+	service.PrometheusServer = &http.Server{Addr: service.PrometheusConfig.Address()}
 
 	http.Handle("/metrics", promhttp.Handler())
-	logrus.Infof("Prometheus metrics at http://%s/metrics", s.Prometheus.Address())
+	logrus.Infof("Prometheus metrics at http://%s/metrics", service.PrometheusConfig.Address())
 
 	go func() {
-		if err := s.PrometheusServer.ListenAndServe(); err != nil {
+		if err := service.PrometheusServer.ListenAndServe(); err != nil {
 			// cannot panic, because this probably is an intentional close
 			logrus.Errorf("Prometheus http server: ListenAndServe() error: %s", err)
 		}
 	}()
-}
-
-func (s *Service) shutdown() {
-	if s.Registery != nil {
-		s.Registery.DeRegister(s)
-	}
-
-	s.GRPCServer.GracefulStop()
-
-	// 30 seconds is the default grace period in Kubernetes
-	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
-	defer cancel()
-	if err := s.PrometheusServer.Shutdown(ctx); err != nil {
-		logrus.Infof("Timeout during shutdown of metrics server. Error: %v", err)
-	}
 }
