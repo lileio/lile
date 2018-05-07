@@ -1,12 +1,12 @@
 package {{ .SnakeCaseName }}
 
 import (
-    "sync"
+	"sync"
 
-    "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-    "github.com/lileio/lile"
-    opentracing "github.com/opentracing/opentracing-go"
-    "google.golang.org/grpc"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/lileio/lile"
+	opentracing "github.com/opentracing/opentracing-go"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -22,7 +22,7 @@ func Get{{ .CamelCaseName }}Client() {{ .CamelCaseName }}Client {
 		return Client
 	}
 
-        serviceURL := lile.URLForService("{{ .DNSName }}")
+	serviceURL := lile.URLForService("{{ .DNSName }}")
 
 	// We don't need to error here, as this creates a pool and connections
 	// will happen later
