@@ -18,8 +18,8 @@ import (
 // You should listen to os signals and call Shutdown() if you
 // want a graceful shutdown or want to handle other goroutines
 func Run() error {
-	if service.Registery != nil {
-		service.Registery.Register(service)
+	if service.Registry != nil {
+		service.Registry.Register(service)
 	}
 
 	// Start a metrics server in the background
@@ -27,8 +27,8 @@ func Run() error {
 
 	// Create and then server a gRPC server
 	err := ServeGRPC()
-	if service.Registery != nil {
-		service.Registery.DeRegister(service)
+	if service.Registry != nil {
+		service.Registry.DeRegister(service)
 	}
 	return err
 }
@@ -49,8 +49,8 @@ func ServeGRPC() error {
 func Shutdown() {
 	logrus.Infof("lile: Gracefully shutting down gRPC and Prometheus")
 
-	if service.Registery != nil {
-		service.Registery.DeRegister(service)
+	if service.Registry != nil {
+		service.Registry.DeRegister(service)
 	}
 
 	service.GRPCServer.GracefulStop()
