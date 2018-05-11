@@ -51,9 +51,9 @@ type Service struct {
 	Config           ServerConfig
 	PrometheusConfig ServerConfig
 
-	// Registery allows Lile to work with external registeries like
+	// Registry allows Lile to work with external registeries like
 	// consul, zookeeper or similar
-	Registery Registery
+	Registry Registry
 
 	// Private utils, exposed so they can be useful if needed
 	ServiceListener  net.Listener
@@ -109,15 +109,14 @@ func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
 }
 
 // URLForService returns a service URL via a registry or a simple DNS name
-// if not available via the registery
+// if not available via the registry
 func URLForService(name string) string {
-	if service.Registery != nil {
-		registeryURL, err := service.Registery.Get(name)
+	if service.Registry != nil {
+		url, err := service.Registry.Get(name)
 		if err != nil {
-			fmt.Printf("lile: error contacting registery for service %s. err: %s \n", name, err.Error())
+			fmt.Printf("lile: error contacting registry for service %s. err: %s \n", name, err.Error())
 		}
-
-		return registeryURL
+		return url
 	}
 
 	return name + ":80"
