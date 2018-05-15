@@ -6,6 +6,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/lile"
 	opentracing "github.com/opentracing/opentracing-go"
+        grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 )
 
@@ -30,7 +31,10 @@ func Get{{ .CamelCaseName }}Client() {{ .CamelCaseName }}Client {
 		serviceURL,
 		grpc.WithInsecure(),
 		grpc.WithUnaryInterceptor(
-			otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer()),
+                        grpc_middleware.ChainUnaryClient(
+                            lile.ContextClientInterceptor(),
+                            otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer()),
+                        ),
 		))
 
 	cli := New{{ .CamelCaseName }}Client(conn)

@@ -3,25 +3,26 @@
 package lile
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"strings"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/fromenv"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 var (
 	service = NewService("lile")
 )
 
+// RegisterImplementation allows you to register your gRPC server
 type RegisterImplementation func(s *grpc.Server)
 
 // ServerConfig is a generic server configuration
@@ -30,6 +31,7 @@ type ServerConfig struct {
 	Host string
 }
 
+// Address Gets a logical addr for a ServerConfig
 func (c *ServerConfig) Address() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
@@ -126,31 +128,35 @@ func URLForService(name string) string {
 	return name + ":80"
 }
 
-func CreateServer() *grpc.Server {
-	// Default interceptors, [prometheus, opentracing]
-	AddUnaryInterceptor(grpc_prometheus.UnaryServerInterceptor)
-	AddStreamInterceptor(grpc_prometheus.StreamServerInterceptor)
-	AddUnaryInterceptor(otgrpc.OpenTracingServerInterceptor(
-		fromenv.Tracer(service.Name)))
+// ContextClientInterceptor passes around headers for tracing and linkerd
+func ContextClientInterceptor() grpc.UnaryClientInterceptor {
+	return func(
+		ctx context.Context,
+		method string,
+		req, resp interface{},
+		cc *grpc.ClientConn,
+		invoker grpc.UnaryInvoker,
+		opts ...grpc.CallOption,
+	) error {
+		pairs := make([]string, 0)
 
-	gs := grpc.NewServer(
-		grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(service.UnaryInts...)),
-		grpc.StreamInterceptor(
-			grpc_middleware.ChainStreamServer(service.StreamInts...)),
-	)
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			for key, values := range md {
+				if strings.HasPrefix(strings.ToLower(key), "l5d") {
+					for _, value := range values {
+						pairs = append(pairs, key, value)
+					}
+				}
 
-	service.GRPCImplementation(gs)
+				if strings.HasPrefix(strings.ToLower(key), "x-") {
+					for _, value := range values {
+						pairs = append(pairs, key, value)
+					}
+				}
+			}
+		}
 
-	grpc_prometheus.EnableHandlingTimeHistogram()
-	grpc_prometheus.Register(gs)
-	http.Handle("/metrics", prometheus.Handler())
-	logrus.Infof("Prometheus metrics at :9000/metrics")
-	port := "9000"
-	if p := os.Getenv("PROMETHEUS_PORT"); p != "" {
-		port = p
+		ctx = metadata.AppendToOutgoingContext(ctx, pairs...)
+		return invoker(ctx, method, req, resp, cc, opts...)
 	}
-	go http.ListenAndServe(":"+port, nil)
-
-	return gs
 }
