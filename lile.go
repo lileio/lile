@@ -113,8 +113,19 @@ func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
 // URLForService returns a service URL via a registry or a simple DNS name
 // if not available via the registry
 func URLForService(name string) string {
-	if os.Getenv("SERVICE_HOST_OVERRIDE") != "" {
-		return os.Getenv("SERVICE_HOST_OVERRIDE")
+
+	var url string
+	port := "80"
+
+	if val, ok := os.LookupEnv("SERVICE_HOST_OVERRIDE"); ok {
+		url = val
+	}
+	if val, ok := os.LookupEnv("SERVICE_PORT_OVERRIDE"); ok {
+		port = val
+	}
+
+	if url != "" {
+		return fmt.Sprintf("%s:%s", url, port)
 	}
 
 	if service.Registry != nil {
