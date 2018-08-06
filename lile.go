@@ -114,18 +114,14 @@ func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
 // if not available via the registry
 func URLForService(name string) string {
 
-	var url string
+	host := name
 	port := "80"
 
 	if val, ok := os.LookupEnv("SERVICE_HOST_OVERRIDE"); ok {
-		url = val
+		host = val
 	}
 	if val, ok := os.LookupEnv("SERVICE_PORT_OVERRIDE"); ok {
 		port = val
-	}
-
-	if url != "" {
-		return fmt.Sprintf("%s:%s", url, port)
 	}
 
 	if service.Registry != nil {
@@ -136,7 +132,8 @@ func URLForService(name string) string {
 		return url
 	}
 
-	return name + ":80"
+	return fmt.Sprintf("%s:%s", host, port)
+
 }
 
 // ContextClientInterceptor passes around headers for tracing and linkerd
