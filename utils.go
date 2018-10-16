@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"google.golang.org/grpc"
 )
 
