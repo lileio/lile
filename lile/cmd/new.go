@@ -3,8 +3,8 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"go/build"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -27,15 +27,7 @@ var (
 var out = colorable.NewColorableStdout()
 
 func init() {
-	gopath = os.Getenv("GOPATH")
-	if gopath == "" {
-		b, err := exec.Command("go", "env", "GOPATH").CombinedOutput()
-		if err != nil {
-			panic(string(b))
-		}
-		gopath = strings.TrimSpace(string(b))
-	}
-
+	gopath := build.Default.GOPATH
 	if paths := filepath.SplitList(gopath); len(paths) > 0 {
 		gopath = paths[0]
 	}

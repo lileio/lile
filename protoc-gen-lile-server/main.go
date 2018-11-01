@@ -3,12 +3,12 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"go/build"
 	"go/format"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -57,14 +57,7 @@ type goimport struct {
 }
 
 func init() {
-	gopath = os.Getenv("GOPATH")
-	if gopath == "" {
-		b, err := exec.Command("go", "env", "GOPATH").CombinedOutput()
-		if err != nil {
-			panic(string(b))
-		}
-		gopath = strings.TrimSpace(string(b))
-	}
+	gopath = build.Default.GOPATH
 	if paths := filepath.SplitList(gopath); len(paths) > 0 {
 		gopath = paths[0]
 	}
