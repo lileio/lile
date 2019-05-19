@@ -9,9 +9,9 @@ import (
 	"github.com/lileio/pubsub"
 	"github.com/lileio/pubsub/middleware/defaults"
 	"google.golang.org/grpc"
-	"{{ .RelDir }}"
-	"{{ .RelDir }}/server"
-	"{{ .RelDir }}/{{ .Name }}/cmd"
+	"{{ .ModuleName }}"
+	"{{ .ModuleName }}/server"
+	"{{ .ModuleName }}/{{ .Name }}/cmd"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 
 	lile.Name("{{ .Name }}")
 	lile.Server(func(g *grpc.Server) {
-		{{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
+		{{ .Name }}.Register{{ .CamelCaseName }}Server(g, s)
 	})
 
 	pubsub.SetClient(&pubsub.Client{

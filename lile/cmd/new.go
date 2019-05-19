@@ -4,64 +4,58 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
+	_ "github.com/lileio/lile/statik"
 	"github.com/mattn/go-colorable"
 	"github.com/spf13/cobra"
 )
 
-var newCmd = &cobra.Command{
-	Use:   "new [name]",
-	Short: "Create a new microservice",
-	Run:   new,
-}
-
 var (
-	gopath       string
-	templatePath string
+	dir  string
+	name string
+
+	out    = colorable.NewColorableStdout()
+	newCmd = &cobra.Command{
+		Use:   "new [name]",
+		Short: "Create a new service",
+		Run:   new,
+	}
 )
 
-var out = colorable.NewColorableStdout()
-
 func init() {
-	gopath = os.Getenv("GOPATH")
-	if gopath == "" {
-		b, err := exec.Command("go", "env", "GOPATH").CombinedOutput()
-		if err != nil {
-			panic(string(b))
-		}
-		gopath = strings.TrimSpace(string(b))
-	}
-
-	if paths := filepath.SplitList(gopath); len(paths) > 0 {
-		gopath = paths[0]
-	}
-
-	templatePath = filepath.Clean(filepath.Join(gopath, "/src/github.com/lileio/lile/template"))
 	RootCmd.AddCommand(newCmd)
+
+	newCmd.Flags().StringVar(
+		&dir,
+		"dir",
+		"",
+		"the directory to create the service",
+	)
+
+	newCmd.Flags().StringVar(
+		&name,
+		"name",
+		"",
+		"the module name i.e (github.com/username/project)",
+	)
+
+	newCmd.MarkFlagRequired("name")
+	newCmd.MarkFlagRequired("dir")
 }
 
 func new(cmd *cobra.Command, args []string) {
-	if len(args) != 1 {
-		fmt.Printf("You must supply a path for the service, e.g lile new lile/users\n")
-		return
-	}
-
-	name := args[0]
-	path := projectPath(name)
-	fmt.Printf("Creating project in %s\n", path)
+	fmt.Printf("Creating project in %s\n", dir)
 
 	if !askIsOK() {
 		fmt.Println("Exiting..")
 		return
 	}
 
-	p := newProject(path, name)
+	p := newProject(dir, name)
 
-	err := p.write(templatePath)
+	err := p.write()
 	if err != nil {
 		er(err)
 	}

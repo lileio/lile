@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -16,18 +15,18 @@ import (
 	"text/template"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/rakyll/statik/fs"
 	"github.com/serenize/snaker"
 	"github.com/xtgo/set"
 
 	"github.com/fatih/color"
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+
+	_ "github.com/lileio/lile/protoc-gen-lile-server/statik" // TODO: Replace with the absolute import path
 )
 
 var (
-	gopath       string
-	templatePath string
-
 	input  io.Reader
 	output io.Writer
 )
@@ -54,21 +53,6 @@ type goimport struct {
 	Package   string
 	GoPackage string
 	GoType    string
-}
-
-func init() {
-	gopath = os.Getenv("GOPATH")
-	if gopath == "" {
-		b, err := exec.Command("go", "env", "GOPATH").CombinedOutput()
-		if err != nil {
-			panic(string(b))
-		}
-		gopath = strings.TrimSpace(string(b))
-	}
-	if paths := filepath.SplitList(gopath); len(paths) > 0 {
-		gopath = paths[0]
-	}
-	templatePath = filepath.Clean(filepath.Join(gopath, "/src/github.com/lileio/lile/protoc-gen-lile-server/templates"))
 }
 
 func main() {
@@ -240,14 +224,23 @@ func streamFromBool(streaming bool) string {
 }
 
 func render(path, tmpl string, m grpcMethod) (*plugin.CodeGeneratorResponse_File, error) {
-	t := template.New(tmpl)
+	hfs, err := fs.New()
+	if err != nil {
+		return nil, err
+	}
 
+	t := template.New(tmpl)
 	funcMap := template.FuncMap{
 		"dedupImports": DedupImports,
 	}
 
 	t = t.Funcs(funcMap)
-	t, err := t.ParseFiles(filepath.Join(templatePath, tmpl))
+	b, err := fs.ReadFile(hfs, "/"+tmpl)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err = t.Parse(string(b))
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +252,7 @@ func render(path, tmpl string, m grpcMethod) (*plugin.CodeGeneratorResponse_File
 		return nil, err
 	}
 
-	b, err := format.Source(out.Bytes())
+	b, err = format.Source(out.Bytes())
 	if err != nil {
 		log.Printf(string(out.Bytes()))
 		log.Printf("\n%s couldn't format Go file %s, %s", color.RedString("[ERROR]"), tmpl, err)
