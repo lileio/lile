@@ -94,14 +94,16 @@ func gen(i io.Reader, o io.Writer) {
 		// Only generate methods for this file/project
 		if *file.Name != req.FileToGenerate[0] {
 			if file.Options == nil || file.Options.GoPackage == nil {
-				log.Fatalf("No go_package option defined for import %s", *file.Name)
+				log.Printf("No go_package option defined for import %s, skipping", *file.Name)
 			}
 
 			continue
 		}
 
 		if file.Options == nil || file.Options.GoPackage == nil {
-			log.Fatalf("No go_package option defined in %s", *file.Name)
+			log.Printf("No go_package option defined in %s", *file.Name)
+
+			continue
 		}
 
 		pkgSplit := strings.Split(file.Options.GetGoPackage(), "/")
