@@ -13,4 +13,4 @@ FROM scratch
 COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-env /{{ .Name }}/build/{{.Name}} /
 ENTRYPOINT ["/{{.Name}}"]
-CMD ["up"]
+CMD ["up", "--grpc-port=80"]
