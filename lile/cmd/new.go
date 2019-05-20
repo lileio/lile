@@ -42,10 +42,13 @@ func init() {
 	)
 
 	newCmd.MarkFlagRequired("name")
-	newCmd.MarkFlagRequired("dir")
 }
 
 func new(cmd *cobra.Command, args []string) {
+	if dir == "" {
+		dir = lastFromSplit(name, string(os.PathSeparator))
+	}
+
 	fmt.Printf("Creating project in %s\n", dir)
 
 	if !askIsOK() {
