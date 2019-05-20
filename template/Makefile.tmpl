@@ -1,16 +1,9 @@
 # vi: ft=make
-
-GOPATH:=$(shell go env GOPATH)
-
 .PHONY: proto test
 
 proto:
 	go get github.com/golang/protobuf/protoc-gen-go
-	protoc -I . {{.Name}}.proto --lile-server_out=. --go_out=plugins=grpc:${GOPATH}/src
+	protoc -I . {{.Name}}.proto --lile-server_out=. --go_out=plugins=grpc,paths=source_relative:.
 
-build: proto
-	go build -o build/{{.RelativeName}} {{.RelativeName}}/main.go
-    
-test:
-	@go get github.com/rakyll/gotest
-	gotest -p 1 -v ./...
+test: proto
+	go test -p 1 -v ./...

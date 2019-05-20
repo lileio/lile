@@ -1,13 +1,16 @@
 FROM golang:alpine AS build-env
-WORKDIR /usr/local/go/src/{{ .RelDir }}
-COPY . /usr/local/go/src/{{ .RelDir }}
+WORKDIR /{{ .Name }}
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh
-RUN go get ./...
-RUN go build -o build/{{.Name}} ./{{.Name}}
+COPY go.mod /{{ .Name }}/go.mod
+COPY go.sum /{{ .Name }}/go.sum
+RUN go mod download
+COPY . /{{ .Name }}
+RUN CGO_ENABLED=0 GOOS=linux go build -o build/{{.Name}} ./{{.Name}}
 
 
-FROM alpine:latest
-RUN apk add --no-cache ca-certificates
-COPY --from=build-env /usr/local/go/src/{{ .RelDir }}/build/{{.Name}} /bin/{{.Name}}
-CMD ["{{.Name}}", "up"]
+FROM scratch
+COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build-env /{{ .Name }}/build/{{.Name}} /
+ENTRYPOINT ["/{{.Name}}"]
+CMD ["up"]

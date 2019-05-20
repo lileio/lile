@@ -10,7 +10,10 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/rakyll/statik/fs"
 	"github.com/xlab/treeprint"
+
+	_ "github.com/lileio/lile/statik"
 )
 
 type file struct {
@@ -20,7 +23,6 @@ type file struct {
 }
 
 type folder struct {
-	Name    string
 	AbsPath string
 
 	// Unexported so you can't set them without methods
@@ -30,7 +32,6 @@ type folder struct {
 
 func (f *folder) addFolder(name string) *folder {
 	newF := &folder{
-		Name:    name,
 		AbsPath: filepath.Join(f.AbsPath, name),
 	}
 	f.folders = append(f.folders, newF)
@@ -45,9 +46,19 @@ func (f *folder) addFile(name, tmpl string) {
 	})
 }
 
-func (f *folder) render(templatePath string, p project) error {
+func (f *folder) render(p project) error {
+	hfs, err := fs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for _, v := range f.files {
-		t, err := template.ParseFiles(filepath.Join(templatePath, v.Template))
+		b, err := fs.ReadFile(hfs, "/"+v.Template)
+		if err != nil {
+			return err
+		}
+
+		t, err := template.New(v.Template).Parse(string(b))
 		if err != nil {
 			return err
 		}
@@ -92,7 +103,7 @@ func (f *folder) render(templatePath string, p project) error {
 			return err
 		}
 
-		err = v.render(templatePath, p)
+		err = v.render(p)
 		if err != nil {
 			return err
 		}
@@ -108,7 +119,7 @@ func (f folder) print() {
 
 func (f folder) tree(root bool, tree treeprint.Tree) treeprint.Tree {
 	if !root {
-		tree = tree.AddBranch(f.Name)
+		tree = tree.AddBranch(lastFromSplit(f.AbsPath, string(os.PathSeparator)))
 	}
 
 	for _, v := range f.folders {

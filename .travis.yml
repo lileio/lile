@@ -1,7 +1,12 @@
 language: go
-go:
- - "1.10"
- - tip
+env:
+  - GO111MODULE="on"
 script:
- - go get -u -t ./...
- - go test -v ./...
+ - make test
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: curl -sL https://git.io/goreleaser | bash
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = linux
