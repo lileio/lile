@@ -120,7 +120,7 @@ func URLForService(name string) string {
 		return url
 	}
 
-	return fmt.Sprintf("%s:%s", name, ":80")
+	return fmt.Sprintf("%s%s", name, ":80")
 
 }
 
