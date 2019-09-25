@@ -17,5 +17,5 @@ jobs:
 
       - name: Run Unit tests.
         run: |
-          export PATH=$PATH:$(go env GOPATH)/bin 
+          export PATH=$PATH:$(go env GOPATH)/bin
           make test
