@@ -7,7 +7,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: [ test ]
     steps:
     - name: Check out code
       uses: actions/checkout@master
