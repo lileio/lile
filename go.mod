@@ -16,7 +16,7 @@ require (
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/prometheus/client_golang v0.9.2
-	github.com/rakyll/statik v0.1.6
+	github.com/rakyll/statik v0.1.7-0.20190731211841-925a23bda946
 	github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.3

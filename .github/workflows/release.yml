@@ -22,7 +22,9 @@ jobs:
         make test
 
     - name: goreleaser
+      uses: docker://goreleaser/goreleaser
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: curl -sL https://git.io/goreleaser | bash
+        GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+      with:
+        args: release --skip-validate
       if: success()
