@@ -1,7 +1,6 @@
 before:
   hooks:
     - go mod download
-    - make statik
 builds:
   - main: ./lile/main.go
     binary: lile
