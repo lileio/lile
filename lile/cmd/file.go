@@ -13,7 +13,7 @@ import (
 	"github.com/rakyll/statik/fs"
 	"github.com/xlab/treeprint"
 
-	_ "github.com/lileio/lile/statik"
+	_ "github.com/lileio/lile/v2/statik"
 )
 
 type file struct {

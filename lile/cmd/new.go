@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	_ "github.com/lileio/lile/statik"
+	_ "github.com/lileio/lile/v2/statik"
 	"github.com/mattn/go-colorable"
 	"github.com/spf13/cobra"
 )

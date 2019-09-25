@@ -23,7 +23,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 
-	_ "github.com/lileio/lile/protoc-gen-lile-server/statik" // TODO: Replace with the absolute import path
+	_ "github.com/lileio/lile/v2/protoc-gen-lile-server/statik" // TODO: Replace with the absolute import path
 )
 
 var (

@@ -3,11 +3,11 @@ package main
 import (
 	_ "net/http/pprof"
 
-	"github.com/lileio/lile"
+	"github.com/lileio/lile/v2"
 	"github.com/lileio/logr"
 	"github.com/lileio/fromenv"
-	"github.com/lileio/pubsub"
-	"github.com/lileio/pubsub/middleware/defaults"
+	"github.com/lileio/pubsub/v2"
+	"github.com/lileio/pubsub/v2/middleware/defaults"
 	"google.golang.org/grpc"
 	"{{ .ModuleName }}"
 	"{{ .ModuleName }}/server"

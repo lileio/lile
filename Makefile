@@ -1,6 +1,6 @@
 .PHONY: test statik
 test: statik
-	go test ./... -v -cover
+	go test ./... -v -count 1 -p 1 -cover
 
 statik:
 	go get github.com/rakyll/statik
