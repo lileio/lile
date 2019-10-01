@@ -21,8 +21,10 @@ jobs:
         export PATH=$PATH:$(go env GOPATH)/bin
         make test
 
-    - name: goreleaser
+    - name: Run GoReleaser
       env:
         GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
-      run: curl -sL https://git.io/goreleaser | bash --skip-validate
+      uses: goreleaser/goreleaser-action@master
+      with:
+        args: release --skip-validate
       if: success()
