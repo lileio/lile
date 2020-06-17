@@ -31,6 +31,21 @@ func toProtoStruct(in, out reflect.Value) error {
 		out.Set(reflect.New(out.Type().Elem()))
 	}
 
+	if out.Type().String() == "*timestamppb.Timestamp" {
+		if in.Kind() == reflect.Ptr {
+			in = reflect.Indirect(in)
+		}
+
+		pbd, err := ptypes.TimestampProto(in.Interface().(time.Time))
+		if err != nil {
+			return err
+		}
+
+		out.Set(reflect.ValueOf(pbd))
+
+		return nil
+	}
+
 FIELD_LOOP:
 	for i := 0; i < in.NumField(); i++ {
 		field := in.Type().Field(i)
@@ -74,6 +89,10 @@ FIELD_LOOP:
 func setValue(inField, outField reflect.Value) error {
 	k := inField.Type().Kind()
 	if k == reflect.Ptr {
+		if inField.IsZero() {
+			return nil
+		}
+
 		k = inField.Elem().Type().Kind()
 		inField = inField.Elem()
 	}
@@ -142,21 +161,6 @@ func setScalar(inF, outF reflect.Value) error {
 
 	if outF.Type().String() == "*durationpb.Duration" {
 		pbd := ptypes.DurationProto(time.Duration(inF.Int()))
-		outF.Set(reflect.ValueOf(pbd))
-
-		return nil
-	}
-
-	if outF.Type().String() == "*timestamppb.Timestamp" {
-		if inF.Kind() == reflect.Ptr {
-			inF = reflect.Indirect(inF)
-		}
-
-		pbd, err := ptypes.TimestampProto(inF.Interface().(time.Time))
-		if err != nil {
-			return err
-		}
-
 		outF.Set(reflect.ValueOf(pbd))
 
 		return nil

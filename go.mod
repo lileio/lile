@@ -20,6 +20,7 @@ require (
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/common v0.4.0 // indirect
 	github.com/rakyll/statik v0.1.7
+	github.com/sanity-io/litter v1.2.0
 	github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.3

@@ -6,6 +6,7 @@ import (
 
 	"github.com/lileio/lile/v2/protocopy"
 	"github.com/lileio/lile/v2/protocopy/test"
+	"github.com/sanity-io/litter"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,6 +19,7 @@ type Nested struct {
 type OriginalBitOfEverything struct {
 	SingleNested             Nested
 	UUID                     string
+	UUIDStrPtr               *string `pb:"UUID"`
 	Nested                   []*Nested
 	FloatValue               float32
 	DoubleValue              float64
@@ -184,4 +186,6 @@ func TestABitOfEverything(t *testing.T) {
 	var outnil test.ABitOfEverything
 	err = protocopy.ToProto(testObj, &outnil)
 	assert.Nil(t, err)
+
+	litter.Dump(outnil)
 }
