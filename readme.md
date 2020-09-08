@@ -24,14 +24,6 @@ $ brew install protobuf
 $ go get -u github.com/lileio/lile/...
 ```
 
-### Getting Started
-
-To generate a new service, run `lile new` with a short folder path.
-
-```
-$ lile new lileio/users
-```
-
 # Guide
 
 - [Creating a Service](#creating-a-service)
@@ -47,13 +39,13 @@ Lile comes with a 'generator' to quickly generate new Lile services.
 
 Lile follows Go's conventions around `$GOPATH` (see [How to Write Go](https://golang.org/doc/code.html#Workspaces)) and is smart enough to parse your new service's name to create the service in the right place.
 
-If your Github username was `lileio` and you wanted to create a new service for posting to Slack you might use the following command.
+If your Github username was `tessthedog` and you wanted to create a new service for posting to Slack you might use the following command.
 
 ```
-lile new lileio/slack
+lile new --name tessthedog/slack
 ```
 
-This will create a project in `$GOPATH/src/github.com/lileio/slack`
+Follow the command line instructions and this will create a new project folder for you with everything you need to continue.
 
 ## Service Definitions
 
@@ -84,7 +76,7 @@ By default Lile will create a example RPC method and a simple message for reques
 
 ``` protobuf
 syntax = "proto3";
-option go_package = "github.com/lileio/slack";
+option go_package = "github.com/tessthedog/slack";
 package slack;
 
 message Request {
@@ -110,7 +102,7 @@ Our `proto` file now looks like this...
 
 ``` protobuf
 syntax = "proto3";
-option go_package = "github.com/lileio/slack";
+option go_package = "github.com/tessthedog/slack";
 import "google/protobuf/empty.proto";
 package slack;
 
@@ -154,7 +146,7 @@ import (
     "errors"
 
     "github.com/golang/protobuf/ptypes/empty"
-    "github.com/lileio/slack"
+    "github.com/tessthedog/slack"
     context "golang.org/x/net/context"
 )
 
@@ -177,7 +169,7 @@ package server
 import (
 	"testing"
 
-	"github.com/lileio/slack"
+	"github.com/tessthedog/slack"
 	"github.com/stretchr/testify/assert"
 	context "golang.org/x/net/context"
 )
@@ -205,7 +197,7 @@ $ make test
         Error:          Expected value not to be nil.
 FAIL
 coverage: 100.0% of statements
-FAIL    github.com/lileio/slack/server  0.011s
+FAIL    github.com/tessthedog/slack/server  0.011s
 make: *** [test] Error 2
 
 ```
@@ -223,7 +215,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/lileio/slack"
+	"github.com/tessthedog/slack"
 	sl "github.com/nlopes/slack"
 	context "golang.org/x/net/context"
 )
@@ -248,7 +240,7 @@ package server
 import (
 	"testing"
 
-	"github.com/lileio/slack"
+	"github.com/tessthedog/slack"
 	"github.com/stretchr/testify/assert"
 	context "golang.org/x/net/context"
 )
@@ -270,15 +262,15 @@ Now if I run the tests with my Slack token as an `ENV` variable, I should see a 
 ```
 $ alex@slack: SLACK_TOKEN=zbxkkausdkasugdk make test
 go test -v ./... -cover
-?       github.com/lileio/slack [no test files]
+?       github.com/tessthedog/slack [no test files]
 === RUN   TestAnnounce
 --- PASS: TestAnnounce (0.32s)
 PASS
 coverage: 75.0% of statements
-ok      github.com/lileio/slack/server  0.331s  coverage: 75.0% of statements
-?       github.com/lileio/slack/slack   [no test files]
-?       github.com/lileio/slack/slack/cmd       [no test files]
-?       github.com/lileio/slack/subscribers     [no test files]
+ok      github.com/tessthedog/slack/server  0.331s  coverage: 75.0% of statements
+?       github.com/tessthedog/slack/slack   [no test files]
+?       github.com/tessthedog/slack/slack/cmd       [no test files]
+?       github.com/tessthedog/slack/subscribers     [no test files]
 ```
 
 ## Using the Generated cmds
@@ -303,4 +295,4 @@ $ cd orders
 $ cobra add import
 ```
 
-You can now edit the file generated to create your cmd, `cobra` will automatically add the cmd's name to the help. 
+You can now edit the file generated to create your cmd, `cobra` will automatically add the cmd's name to the help.
