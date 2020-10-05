@@ -284,7 +284,7 @@ For example `go run orders/main.go`
 ### up
 Running `up` will run both the RPC server and the pubsub subscribers.
 
-```go run orders/main.go```
+```go run orders/main.go up```
 
 ## Adding your own cmds
 
