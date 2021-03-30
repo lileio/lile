@@ -1,0 +1,94 @@
+syntax = "proto3";
+option go_package = "github.com/lileio/protocopy/test";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// Intentionally complicated message type to cover many features of Protobuf.
+message ABitOfEverything {
+	// Nested is nested type.
+	message Nested {
+		// name is nested field.
+		string name = 1;
+		uint32 amount = 2;
+		// DeepEnum is one or zero.
+		enum DeepEnum {
+			// FALSE is false.
+			FALSE = 0;
+			// TRUE is true.
+			TRUE = 1;
+		}
+
+		// DeepEnum comment.
+		DeepEnum ok = 3;
+	}
+	Nested single_nested = 25;
+
+	string uuid = 1;
+	repeated Nested nested = 2;
+	float float_value = 3;
+	double double_value = 4;
+	int64 int64_value = 5;
+	uint64 uint64_value = 6;
+	int32 int32_value = 7;
+	fixed64 fixed64_value = 8;
+	fixed32 fixed32_value = 9;
+	bool bool_value = 10;
+	string string_value = 11;
+	bytes bytes_value = 29;
+	uint32 uint32_value = 13;
+	NumericEnum enum_value = 14;
+	NumericEnum enum_value_int = 50;
+	sfixed32 sfixed32_value = 15;
+	sfixed64 sfixed64_value = 16;
+	sint32 sint32_value = 17;
+	sint64 sint64_value = 18;
+	repeated string repeated_string_value = 19;
+
+	map<string, NumericEnum> map_value = 22;
+	map<string, string> mapped_string_value = 23;
+	map<string, Nested> mapped_nested_value = 24;
+
+	string nonConventionalNameValue = 26;
+
+	google.protobuf.Timestamp timestamp_value = 27;
+	google.protobuf.Timestamp timestamp_value_pointer = 49;
+	google.protobuf.Duration duration_value = 47;
+
+
+
+	// repeated values. they are comma-separated in path
+	repeated float path_repeated_float_value = 44;
+	repeated double path_repeated_double_value = 45;
+	repeated int64 path_repeated_int64_value = 30;
+	repeated uint64 path_repeated_uint64_value = 31;
+	repeated int32 path_repeated_int32_value = 32;
+	repeated fixed64 path_repeated_fixed64_value = 33;
+	repeated fixed32 path_repeated_fixed32_value = 34;
+	repeated bool path_repeated_bool_value = 35;
+	repeated string path_repeated_string_value = 36;
+	repeated bytes path_repeated_bytes_value = 37;
+	repeated uint32 path_repeated_uint32_value = 38;
+	repeated NumericEnum path_repeated_enum_value = 46;
+	repeated sfixed32 path_repeated_sfixed32_value = 40;
+	repeated sfixed64 path_repeated_sfixed64_value = 41;
+	repeated sint32 path_repeated_sint32_value = 42;
+	repeated sint64 path_repeated_sint64_value = 43;
+}
+
+message Body {
+	string name = 1;
+}
+
+message MessageWithBody {
+	string id = 1;
+	Body data = 2;
+}
+
+
+// NumericEnum is one or zero.
+enum NumericEnum {
+	// ZERO means 0
+	ZERO = 0;
+	// ONE means 1
+	ONE = 1;
+}
