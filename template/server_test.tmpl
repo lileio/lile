@@ -6,16 +6,16 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/lileio/lile"
-	"{{ .RelDir }}"
+	"github.com/lileio/lile/v2"
+	"{{ .ModuleName }}"
 )
 
 var s = {{ .CamelCaseName }}Server{}
-var cli {{ .SnakeCaseName }}.{{ .CamelCaseName }}Client
+var cli {{ .Name }}.{{ .CamelCaseName }}Client
 
 func TestMain(m *testing.M) {
 	impl := func(g *grpc.Server) {
-		{{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
+		{{ .Name }}.Register{{ .CamelCaseName }}Server(g, s)
 	}
 
 	gs := grpc.NewServer()
@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	addr, serve := lile.NewTestServer(gs)
 	go serve()
 
-	cli = {{ .SnakeCaseName }}.New{{ .CamelCaseName }}Client(lile.TestConn(addr))
+	cli = {{ .Name }}.New{{ .CamelCaseName }}Client(lile.TestConn(addr))
 
 	os.Exit(m.Run())
 }

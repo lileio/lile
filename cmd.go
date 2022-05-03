@@ -9,10 +9,33 @@ func BaseCommand(serviceName, shortDescription string) *cobra.Command {
 		Short: shortDescription,
 	}
 
-	command.PersistentFlags().StringVar(&service.Config.Host, "grpc_host", "0.0.0.0", "gRPC service hostname")
-	command.PersistentFlags().IntVar(&service.Config.Port, "grpc_port", 8000, "gRPC port")
-	command.PersistentFlags().StringVar(&service.PrometheusConfig.Host, "prometheus_host", "0.0.0.0", "Prometheus metrics hostname")
-	command.PersistentFlags().IntVar(&service.PrometheusConfig.Port, "prometheus_port", 9000, "Prometheus metrics port")
+	command.PersistentFlags().StringVar(
+		&service.Config.Host,
+		"grpc-host",
+		"0.0.0.0",
+		"gRPC service hostname",
+	)
+
+	command.PersistentFlags().IntVar(
+		&service.Config.Port,
+		"grpc-port",
+		8000,
+		"gRPC port",
+	)
+
+	command.PersistentFlags().StringVar(
+		&service.PrometheusConfig.Host,
+		"prometheus-host",
+		"0.0.0.0",
+		"Prometheus metrics hostname",
+	)
+
+	command.PersistentFlags().IntVar(
+		&service.PrometheusConfig.Port,
+		"prometheus-port",
+		9000,
+		"Prometheus metrics port",
+	)
 
 	return command
 }

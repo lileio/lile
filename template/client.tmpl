@@ -1,10 +1,10 @@
-package {{ .SnakeCaseName }}
+package {{ .Name }}
 
 import (
 	"sync"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/lileio/lile"
+	"github.com/lileio/lile/v2"
 	opentracing "github.com/opentracing/opentracing-go"
         grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"

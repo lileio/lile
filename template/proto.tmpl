@@ -1,6 +1,6 @@
 syntax = "proto3";
-option go_package = "{{ .RelDir }}";
-package {{ .SnakeCaseName }};
+option go_package = "{{ .ModuleName }}";
+package {{ .Name }};
 
 message GetRequest {
   string id = 1;

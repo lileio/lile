@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/lileio/fromenv"
 	"google.golang.org/grpc"
@@ -113,17 +112,6 @@ func AddStreamInterceptor(sint grpc.StreamServerInterceptor) {
 // URLForService returns a service URL via a registry or a simple DNS name
 // if not available via the registry
 func URLForService(name string) string {
-
-	host := name
-	port := "80"
-
-	if val, ok := os.LookupEnv("SERVICE_HOST_OVERRIDE"); ok {
-		host = val
-	}
-	if val, ok := os.LookupEnv("SERVICE_PORT_OVERRIDE"); ok {
-		port = val
-	}
-
 	if service.Registry != nil {
 		url, err := service.Registry.Get(name)
 		if err != nil {
@@ -132,7 +120,7 @@ func URLForService(name string) string {
 		return url
 	}
 
-	return fmt.Sprintf("%s:%s", host, port)
+	return fmt.Sprintf("%s%s", name, ":80")
 
 }
 
@@ -150,12 +138,6 @@ func ContextClientInterceptor() grpc.UnaryClientInterceptor {
 
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			for key, values := range md {
-				if strings.HasPrefix(strings.ToLower(key), "l5d") {
-					for _, value := range values {
-						pairs = append(pairs, key, value)
-					}
-				}
-
 				if strings.HasPrefix(strings.ToLower(key), "x-") {
 					for _, value := range values {
 						pairs = append(pairs, key, value)

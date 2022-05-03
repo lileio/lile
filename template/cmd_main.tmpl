@@ -3,15 +3,15 @@ package main
 import (
 	_ "net/http/pprof"
 
-	"github.com/lileio/lile"
+	"github.com/lileio/lile/v2"
 	"github.com/lileio/logr"
 	"github.com/lileio/fromenv"
-	"github.com/lileio/pubsub"
-	"github.com/lileio/pubsub/middleware/defaults"
+	"github.com/lileio/pubsub/v2"
+	"github.com/lileio/pubsub/v2/middleware/defaults"
 	"google.golang.org/grpc"
-	"{{ .RelDir }}"
-	"{{ .RelDir }}/server"
-	"{{ .RelDir }}/{{ .Name }}/cmd"
+	"{{ .ModuleName }}"
+	"{{ .ModuleName }}/server"
+	"{{ .ModuleName }}/{{ .Name }}/cmd"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 
 	lile.Name("{{ .Name }}")
 	lile.Server(func(g *grpc.Server) {
-		{{ .SnakeCaseName }}.Register{{ .CamelCaseName }}Server(g, s)
+		{{ .Name }}.Register{{ .CamelCaseName }}Server(g, s)
 	})
 
 	pubsub.SetClient(&pubsub.Client{
