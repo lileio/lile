@@ -25,9 +25,10 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.7.1
 	github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6
 	github.com/xtgo/set v1.0.0
+	go.uber.org/fx v1.18.2 // indirect
 	google.golang.org/api v0.11.0 // indirect
 	google.golang.org/grpc v1.24.0
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect

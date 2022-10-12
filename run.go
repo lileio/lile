@@ -2,6 +2,8 @@ package lile
 
 import (
 	"context"
+	"github.com/lileio/pubsub/v2"
+	"go.uber.org/fx"
 	"net"
 	"net/http"
 	"time"
@@ -17,20 +19,34 @@ import (
 // Run is a blocking cmd to run the gRPC and metrics server.
 // You should listen to os signals and call Shutdown() if you
 // want a graceful shutdown or want to handle other goroutines
-func Run() error {
-	if service.Registry != nil {
-		service.Registry.Register(service)
-	}
+func Run(lifecycle fx.Lifecycle) {
 
-	// Start a metrics server in the background
-	startPrometheusServer()
+	lifecycle.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			if service.Registry != nil {
+				service.Registry.Register(service)
+			}
 
-	// Create and then server a gRPC server
-	err := ServeGRPC()
-	if service.Registry != nil {
-		service.Registry.DeRegister(service)
-	}
-	return err
+			// Start a metrics server in the background
+			startPrometheusServer()
+
+			// Create and then server a gRPC server
+			err := ServeGRPC()
+			if service.Registry != nil {
+				service.Registry.DeRegister(service)
+			}
+			return err
+		},
+		OnStop: func(ctx context.Context) error {
+			if err := Shutdown(ctx); err != nil {
+				return err
+			}
+
+			pubsub.Shutdown()
+			return nil
+		},
+	})
+
 }
 
 // ServeGRPC creates and runs a blocking gRPC server
@@ -46,21 +62,28 @@ func ServeGRPC() error {
 }
 
 // Shutdown gracefully shuts down the gRPC and metrics servers
-func Shutdown() {
+func Shutdown(ctx context.Context) error {
 	logrus.Infof("lile: Gracefully shutting down gRPC and Prometheus")
 
 	if service.Registry != nil {
-		service.Registry.DeRegister(service)
+		if err := service.Registry.DeRegister(service); err != nil {
+			return err
+		}
 	}
 
 	service.GRPCServer.GracefulStop()
 
 	// 30 seconds is the default grace period in Kubernetes
 	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
+
 	defer cancel()
+
 	if err := service.PrometheusServer.Shutdown(ctx); err != nil {
 		logrus.Infof("Timeout during shutdown of metrics server. Error: %v", err)
+		return err
 	}
+
+	return nil
 }
 
 func createGrpcServer() *grpc.Server {
