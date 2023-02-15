@@ -1,10 +1,9 @@
 module github.com/lileio/lile/v2
 
 require (
-	github.com/beorn7/perks v1.0.0 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/gofrs/uuid v3.1.0+incompatible
-	github.com/golang/protobuf v1.3.2
+	github.com/golang/protobuf v1.4.3
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -17,12 +16,10 @@ require (
 	github.com/natefinch/npipe v0.0.0-20160621034901-c1b8fa8bdcce
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
-	github.com/prometheus/client_golang v0.9.2
-	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
-	github.com/prometheus/common v0.4.0 // indirect
+	github.com/prometheus/client_golang v1.11.1
 	github.com/rakyll/statik v0.1.7-0.20190731211841-925a23bda946
 	github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.4.0
