@@ -131,9 +131,7 @@ func gen(i io.Reader, o io.Writer) {
 				}
 
 				if len(f) > 0 {
-					for _, v := range f {
-						files = append(files, v)
-					}
+					files = append(files, f...)
 				}
 			}
 		}
