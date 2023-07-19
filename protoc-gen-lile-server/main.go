@@ -256,7 +256,7 @@ func render(path, tmpl string, m grpcMethod) (*plugin.CodeGeneratorResponse_File
 
 	b, err = format.Source(out.Bytes())
 	if err != nil {
-		log.Printf(string(out.Bytes()))
+		log.Printf(out.String())
 		log.Printf("\n%s couldn't format Go file %s, %s", color.RedString("[ERROR]"), tmpl, err)
 		return nil, err
 	}

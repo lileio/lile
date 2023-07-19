@@ -80,7 +80,7 @@ func (f *folder) render(p project) error {
 
 			b, err := format.Source(out.Bytes())
 			if err != nil {
-				fmt.Print(string(out.Bytes()))
+				fmt.Print(out.String())
 				log.Printf("\nCould not format Go file %s\n", v)
 				return err
 			}
